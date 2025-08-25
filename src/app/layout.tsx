@@ -1,17 +1,26 @@
-// app/layout.tsx
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "next-auth/react";
-import NavBar from "@/components/navbar";
+import { auth } from "@/auth";
 
-const inter = Inter({ subsets: ["latin"] });
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+
 
 export const metadata: Metadata = {
   title: "Himay's Developer Projects",
-  description: "A collection of development projects by Himay Hue, showcasing web apps, experiments, and more.",
+  description:
+    "A collection of development projects by Himay Hue, showcasing web apps, experiments, and more.",
   metadataBase: new URL("https://himayhue.com"),
   icons: {
     icon: [
@@ -40,20 +49,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
+  const session = await auth();
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-dvh flex flex-col`}>
-        <SessionProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-            <NavBar />
-            <main className="flex-1 /* pl-60 */ overflow-auto">
-              {children}
-            </main>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <SessionProvider session={session}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
           </ThemeProvider>
         </SessionProvider>
       </body>
