@@ -7,6 +7,16 @@ import bcryptjs from "bcryptjs";
 import { NextAuthConfig } from "next-auth";
 
 
+/**
+ * An array of authentication-related route paths.
+ * These routes are used to identify pages for user sign-in and sign-up.
+ *
+ * @example
+ * // Check if a route is an authentication route
+ * if (authRoutes.includes(currentPath)) {
+ *   // Handle authentication logic
+ * }
+ */
 const authRoutes = ["/auth/signin", "/auth/signup"];
 const setUsernameRoute = "/set-username";
 
@@ -74,25 +84,28 @@ const config = {
    ],
    callbacks: {
       authorized({ request: { nextUrl }, auth }) {
-         // Only allow access if logged in
          const userIsLoggedIn = !!auth?.user;
          const role = auth?.user.role || 'user';
          const usernameIsNotSet = !auth?.user.username;
 
          const { pathname } = nextUrl;
 
-         // // Redirect to set username page if user is logged in but username is missing
+         // Allow access to home page for everyone
+         if (pathname === '/') return true;
+
+         // Redirect to set username page if user is logged in but username is missing
          if (userIsLoggedIn && usernameIsNotSet) return Response.redirect(new URL(setUsernameRoute, nextUrl));
 
-         // // Redirect to the dashboard if logged in and trying to access the signin or sign up page
+         // Redirect to the dashboard if logged in and trying to access the signin or sign up page
          if (userIsLoggedIn && authRoutes.includes(pathname)) return Response.redirect(new URL('/dashboard', nextUrl));
 
-         // // Redirect to signin page if user is not logged in and trying to access the set username page
+         // Redirect to signin page if user is not logged in and trying to access the set username page
          if (!userIsLoggedIn && pathname === setUsernameRoute) return Response.redirect(new URL('/auth/signin', nextUrl));
 
-         // // Limit access to admin routes to admin users only
+         // Limit access to admin routes to admin users only
          if (pathname.startsWith('/admin') && role !== 'admin') return Response.redirect(new URL('/dashboard', nextUrl));
 
+         // For all other routes, require authentication
          return userIsLoggedIn
       },
 
