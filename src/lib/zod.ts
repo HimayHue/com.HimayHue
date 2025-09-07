@@ -30,7 +30,8 @@ export const usernameSignInSchema = object({
    username: string({ required_error: "Username is required" })
       .min(USERNAME_MINIMUM_LENGTH, `Username must be at least ${USERNAME_MINIMUM_LENGTH} characters`)
       .max(USERNAME_MAXIMUM_LENGTH, `Username must be less than ${USERNAME_MAXIMUM_LENGTH} characters`)
-      .regex(/^[a-zA-Z0-9_.]+$/, "Username can only contain letters, numbers, underscores, and dots"),
+      .regex(/^[a-zA-Z0-9_.]+$/, "Username can only contain letters, numbers, underscores, and dots")
+      .transform(val => val.toLowerCase()),
 
    password: string({ required_error: "Password is required" })
       .min(1, "Password is required")
@@ -89,6 +90,11 @@ export const signUpSchema = object({
    name: string({ required_error: "Name is required" })
       .min(1, "Name is required.")
       .max(50, "Name must be less than 50 characters"),
+   username: string({ required_error: "Username is required" })
+      .min(USERNAME_MINIMUM_LENGTH, `Username must be at least ${USERNAME_MINIMUM_LENGTH} characters`)
+      .max(USERNAME_MAXIMUM_LENGTH, `Username must be less than ${USERNAME_MAXIMUM_LENGTH} characters`)
+      .regex(/^[a-zA-Z0-9_.]+$/, "Username can only contain letters, numbers, underscores, and dots")
+      .transform(val => val.toLowerCase()),
    email: string({ required_error: "Email is required" })
       .min(1, "Email is required.")
       .email("Invalid email"),
@@ -112,6 +118,7 @@ export const usernameChangeSchema = object({
    username: string({ required_error: "Username is required" })
       .min(USERNAME_MINIMUM_LENGTH, `Username must be at least ${USERNAME_MINIMUM_LENGTH} characters`)
       .max(USERNAME_MAXIMUM_LENGTH, `Username must be less than ${USERNAME_MAXIMUM_LENGTH} characters`)
-      .regex(/^[a-zA-Z0-9_.]+$/, "Username can only contain letters, numbers, underscores, and dots"),
+      .regex(/^[a-zA-Z0-9_.]+$/, "Username can only contain letters, numbers, underscores, and dots")
+      .transform(val => val.toLowerCase()),
 })
 

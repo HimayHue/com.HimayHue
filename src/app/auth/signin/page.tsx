@@ -13,7 +13,7 @@ import { GoogleSignInButton } from "@/components/signin-buttons";
 import { z } from "zod";
 import { emailSignInSchema } from "@/lib/zod";
 import ErrorMessage from "@/components/error-message";
-import { handleCredentialsSignin } from "@/app/actions/auth-actions";
+import { signIn } from "next-auth/react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -56,9 +56,20 @@ export default function SignIn() {
    // TODO: turn into a reusable function
    const onSubmit = async (values: z.infer<typeof emailSignInSchema>) => {
       try {
-         const result = await handleCredentialsSignin(values);
-         if (result?.message) {
-            setGlobalError(result.message);
+         console.log("Starting sign-in process...");
+         const result = await signIn("credentials", {
+            email: values.email,
+            password: values.password,
+            redirect: false,
+         });
+
+         console.log("Sign-in result:", result);
+
+         if (result?.error) {
+            setGlobalError("Invalid credentials");
+         } else if (result?.ok) {
+            // Successful login, redirect to dashboard
+            router.push("/dashboard");
          }
       }
       catch (error) {

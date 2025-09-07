@@ -8,20 +8,26 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signUpSchema } from "@/lib/zod";
-import {
-   finishCredentialsSignUp,
-   handleCredentialsSignUp,
-} from "@/app/actions/auth-actions";
+import { handleCredentialsSignUp } from "@/app/actions/auth-actions";
 import CredentialsSignUpForm from "@/components/forms/credentials-signup-form";
 import { GoogleSignInButton } from "@/components/signin-buttons";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+interface ServerActionResponse {
+   success: boolean;
+   message: string;
+}
 
 export default function SignUp() {
    const [globalError, setGlobalError] = useState("");
+   const router = useRouter();
 
    const form = useForm<z.infer<typeof signUpSchema>>({
       resolver: zodResolver(signUpSchema),
       defaultValues: {
          name: "",
+         username: "",
          email: "",
          password: "",
          confirmPassword: "",
@@ -36,9 +42,28 @@ export default function SignUp() {
    */
    const onSubmit = async (values: z.infer<typeof signUpSchema>) => {
       try {
+         console.log("Starting sign-up process...");
          const result: ServerActionResponse = await handleCredentialsSignUp(values);
-         if (result.success) await finishCredentialsSignUp({ email: values.email, password: values.password });
-         else setGlobalError(result.message);
+         if (result.success) {
+            console.log("Account created successfully, signing in...");
+            // Account created successfully, now sign in the user
+            const signInResult = await signIn("credentials", {
+               email: values.email,
+               password: values.password,
+               redirect: false,
+            });
+            
+            console.log("Sign-in result:", signInResult);
+            
+            if (signInResult?.error) {
+               setGlobalError("Account created but login failed. Please try signing in.");
+            } else if (signInResult?.ok) {
+               // Successful login, redirect to dashboard
+               router.push("/dashboard");
+            }
+         } else {
+            setGlobalError(result.message);
+         }
       }
       catch (error) {
          setGlobalError("An unexpected error occurred. Please try again.");

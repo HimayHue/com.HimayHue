@@ -27,6 +27,7 @@ export async function handleCredentialsSignin({ email, password }: {
                }
          }
       }
+      // Re-throw redirect errors as they are expected behavior
       throw error;
    }
 }
@@ -47,7 +48,7 @@ export async function finishCredentialsSignUp({ email, password }: {
    password: string
 }) {
    try {
-      await signIn("credentials", { email, password, redirectTo: "/set-username" });
+      await signIn("credentials", { email, password, redirectTo: "/dashboard" });
    }
    catch (error) {
       if (error instanceof AuthError) {
@@ -80,25 +81,40 @@ export async function handleSignOut() {
 }
 
 
-export async function handleCredentialsSignUp({ name, email, password, confirmPassword }: {
+export async function handleCredentialsSignUp({ name, username, email, password, confirmPassword }: {
    name: string,
+   username: string,
    email: string,
    password: string,
    confirmPassword: string
 }) {
    try {
-      const parsedCredentials = signUpSchema.safeParse({ name, email, password, confirmPassword });
+      const parsedCredentials = signUpSchema.safeParse({ name, username, email, password, confirmPassword });
       if (!parsedCredentials.success) return { success: false, message: "Invalid data." };
 
       // check if the email is already taken
-      const existingUser = await prisma.user.findUnique({
+      const existingEmail = await prisma.user.findUnique({
          where: {
             email,
          },
       });
 
-      if (existingUser) {
+      if (existingEmail) {
          return { success: false, message: "Email already exists. Login to continue." };
+      }
+
+      // check if the username is already taken (case-insensitive)
+      const existingUsername = await prisma.user.findFirst({
+         where: {
+            username: {
+               equals: username,
+               mode: 'insensitive'
+            }
+         },
+      });
+
+      if (existingUsername) {
+         return { success: false, message: "Username already exists. Please choose a different one." };
       }
 
       // hash the password
@@ -106,6 +122,7 @@ export async function handleCredentialsSignUp({ name, email, password, confirmPa
       await prisma.user.create({
          data: {
             name,
+            username,
             email,
             password: hashedPassword,
          },
