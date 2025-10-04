@@ -74,13 +74,14 @@ const config = {
    ],
    callbacks: {
       authorized({ request: { nextUrl }, auth }) {
+         if (nextUrl.pathname === '/') return true;
+
          const userIsLoggedIn = !!auth?.user;
          const role = auth?.user.role || 'user';
-
          const { pathname } = nextUrl;
 
+
          // Allow access to home page for everyone
-         if (pathname === '/') return true;
 
          // Redirect to the dashboard if logged in and trying to access the signin or sign up page
          if (userIsLoggedIn && authRoutes.includes(pathname)) return Response.redirect(new URL('/dashboard', nextUrl));

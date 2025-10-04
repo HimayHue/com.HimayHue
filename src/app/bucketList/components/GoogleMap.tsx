@@ -1,5 +1,5 @@
-// 'use client'
-import { useState, useEffect, useRef } from 'react'
+'use client'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Loader } from "@googlemaps/js-api-loader";
 
 // Types
@@ -15,7 +15,7 @@ interface GoogleMapProps {
 
 interface MarkerWithPlaceId extends google.maps.marker.AdvancedMarkerElement {
    placeId?: string;
-   color?: PinColor; // Optional color property for custom pin colors
+   color?: string; // Optional color property for custom pin colors
 }
 
 
@@ -42,19 +42,20 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
 
    // Cleanup markers on unmount
    useEffect(() => {
+      const currentSearchMarkers = searchResultPlacesMarkers.current;
+      const currentBucketMarkers = bucketListPlacesMarkers.current;
+      const currentAllMarkers = allMarkersMap.current;
+      
       return () => {
-         searchResultPlacesMarkers.current.forEach(marker => {
-            allMarkersMap.current.delete(marker.title ?? "");
+         currentSearchMarkers.forEach(marker => {
+            currentAllMarkers.delete(marker.title ?? "");
             marker.map = null;
          });
-         searchResultPlacesMarkers.current = [];
-
-         bucketListPlacesMarkers.current.forEach(marker => {
-            if (marker.placeId) allMarkersMap.current.delete(marker.placeId);
+         
+         currentBucketMarkers.forEach(marker => {
+            if (marker.placeId) currentAllMarkers.delete(marker.placeId);
             marker.map = null;
          });
-         bucketListPlacesMarkers.current = [];
-
       };
    }, []);
 
@@ -70,12 +71,14 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
             console.warn("User denied location or something went wrong.");
          }
       })();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
 
    // Update Search Result Places Pins when places change
    useEffect(() => {
       if (mapInstanceRef.current) displaySearchResultsPlaces(searchResultPlaces);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [searchResultPlaces]);
 
 
@@ -83,6 +86,7 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
    useEffect(() => {
       if (!mapInstanceRef.current) return;
       displayBucketListPlaces(bucketListPlaces);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [bucketListPlaces]);
 
    // Update Hovered Place Pin
@@ -118,10 +122,10 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
       }
 
       setLastHoveredPlace(hoveredPlace ?? null);
-   }, [hoveredPlace]);
+   }, [hoveredPlace, lastHoveredPlace]);
 
 
-   async function getCurrentLocation(): Promise<google.maps.LatLngLiteral | null> {
+   const getCurrentLocation = useCallback(async (): Promise<google.maps.LatLngLiteral | null> => {
       if (!navigator.geolocation) {
          console.error("Geolocation is not supported by this browser.");
          return null;
@@ -134,8 +138,7 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
                };
-               setCurrentLocation(coords);
-               resolve(coords); // ✅ return location directly
+               resolve(coords);
             },
             (error) => {
                console.error("Error getting location:", error);
@@ -143,10 +146,10 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
             }
          );
       });
-   }
+   }, []);
 
 
-   async function initMap(): Promise<void> {
+   const initMap = useCallback(async (): Promise<void> => {
       if (!mapElement.current) return;
 
       const loader = new Loader({
@@ -161,9 +164,9 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
       catch (e) {
          console.error('Error loading Google Maps:', e);
       }
-   }
+   }, []);
 
-   async function displaySearchResultsPlaces(places: google.maps.places.Place[]) {
+   const displaySearchResultsPlaces = useCallback(async (places: google.maps.places.Place[]) => {
       // Clear previous markers
       searchResultPlacesMarkers.current.forEach(marker => marker.map = null);
       searchResultPlacesMarkers.current = [];
@@ -215,11 +218,14 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
       });
 
       mapInstanceRef.current?.fitBounds(bounds);
-      if (mapInstanceRef.current?.getZoom()! > 18) mapInstanceRef.current?.setZoom(18);
+      const currentZoom = mapInstanceRef.current?.getZoom();
+      if (currentZoom && currentZoom > 18) {
+         mapInstanceRef.current?.setZoom(18);
+      }
 
    }
 
-   async function displayBucketListPlaces(places: BucketListPlace[]) {
+   const displayBucketListPlaces = useCallback(async (places: BucketListPlace[]) => {
       // Clear previous markers
       bucketListPlacesMarkers.current.forEach(marker => marker.map = null);
       bucketListPlacesMarkers.current = [];
@@ -292,8 +298,7 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
          // Register marker in global map for hover functionality
          allMarkersMap.current.set(place.id, marker);
       });
-
-   }
+   }, [setHoveredPlace]);
 
    return (
       <div ref={mapElement} className="w-full">

@@ -16,14 +16,11 @@ import {
 import { Button } from "@/components/ui/button"
 
 // Actions
-import { addPlaceToBucketList } from "@/app/actions/bucketList"
-import { BucketListPlace } from "@/types/bucketListTypes";
-import { on } from "events";
 import { cn } from "@/lib/utils"
 
 interface Props {
    place: google.maps.places.Place;
-   hoveredPlace: String | null;
+   hoveredPlace: string | null;
    setHoveredPlace: React.Dispatch<React.SetStateAction<string | null>>;
    onAdd: (place: google.maps.places.Place) => Promise<boolean>;
 }

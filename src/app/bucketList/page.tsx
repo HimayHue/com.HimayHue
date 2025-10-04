@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 
 // Next.js & Routing
 import { useSession } from 'next-auth/react'
-import type { Metadata } from "next";
 
 
 // Components
@@ -18,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Actions
-import { getBucketList, removePlaceFromBucketList, addPlaceToBucketList, markPlaceAsVisited, unmarkPlaceAsVisited } from '../actions/bucketList'
+import { getBucketList, removePlaceFromBucketList, addPlaceToBucketList, markPlaceAsVisited, unmarkPlaceAsVisited } from '../../actions/bucketList'
 
 // Types
 import { BucketListPlace } from '@/types/bucketListTypes'
@@ -113,7 +112,7 @@ export default function BucketList() {
 
 
     try {
-      let formattedPlace: BucketListPlace = {
+      const formattedPlace: BucketListPlace = {
         id: place.id,
         formattedAddress: place.formattedAddress as string,
         displayName: place.displayName as string,
@@ -122,9 +121,9 @@ export default function BucketList() {
           lng: place.location!.lng(),
         },
         dateAdded: new Date().toISOString(),
-        dateVisited: undefined,
-        googleMapsURI: place.googleMapsURI || undefined,
-        websiteURI: place.websiteURI || undefined,
+        dateVisited: null,
+        googleMapsURI: place.googleMapsURI || null,
+        websiteURI: place.websiteURI || null,
       };
       await addPlaceToBucketList(formattedPlace);
 
@@ -160,7 +159,7 @@ export default function BucketList() {
       setBucketListPlaces(prev =>
         prev.map(place =>
           place.id === placeId
-            ? { ...place, dateVisited: visited ? new Date().toISOString() : undefined }
+            ? { ...place, dateVisited: visited ? new Date().toISOString() : null }
             : place
         )
       );
