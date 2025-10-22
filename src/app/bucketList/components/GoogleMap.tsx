@@ -45,13 +45,13 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
       const currentSearchMarkers = searchResultPlacesMarkers.current;
       const currentBucketMarkers = bucketListPlacesMarkers.current;
       const currentAllMarkers = allMarkersMap.current;
-      
+
       return () => {
          currentSearchMarkers.forEach(marker => {
             currentAllMarkers.delete(marker.title ?? "");
             marker.map = null;
          });
-         
+
          currentBucketMarkers.forEach(marker => {
             if (marker.placeId) currentAllMarkers.delete(marker.placeId);
             marker.map = null;
@@ -222,8 +222,7 @@ export default function GoogleMap({ searchResultPlaces, bucketListPlaces, hovere
       if (currentZoom && currentZoom > 18) {
          mapInstanceRef.current?.setZoom(18);
       }
-
-   }
+   }, [hoveredPlace, setHoveredPlace]);
 
    const displayBucketListPlaces = useCallback(async (places: BucketListPlace[]) => {
       // Clear previous markers
