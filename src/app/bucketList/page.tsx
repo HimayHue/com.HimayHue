@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 // Next.js & Routing
 import { useSession } from 'next-auth/react'
-import type { Metadata } from "next";
+
 
 
 // Components
@@ -18,10 +18,11 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Actions
-import { getBucketList, removePlaceFromBucketList, addPlaceToBucketList, markPlaceAsVisited, unmarkPlaceAsVisited } from '../actions/bucketList'
+import { getBucketList, removePlaceFromBucketList, addPlaceToBucketList, markPlaceAsVisited, unmarkPlaceAsVisited } from '@/actions/bucketList'
 
 // Types
 import { BucketListPlace } from '@/types/bucketListTypes'
+import { PlainGoogleMap } from './components/GoogleMapComponent'
 
 
 // export const metadata: Metadata = {
@@ -113,7 +114,7 @@ export default function BucketList() {
 
 
     try {
-      let formattedPlace: BucketListPlace = {
+      const formattedPlace: BucketListPlace = {
         id: place.id,
         formattedAddress: place.formattedAddress as string,
         displayName: place.displayName as string,
@@ -188,8 +189,8 @@ export default function BucketList() {
   return (
     <div className="flex flex-grow overflow-hidden h-full">
       {/* Map Section */}
-      <GoogleMap searchResultPlaces={placesResults} bucketListPlaces={bucketListPlaces} hoveredPlace={hoveredPlace} setHoveredPlace={setHoveredPlace} />
-
+      {/* <GoogleMap searchResultPlaces={placesResults} bucketListPlaces={bucketListPlaces} hoveredPlace={hoveredPlace} setHoveredPlace={setHoveredPlace} /> */}
+      <PlainGoogleMap />
       {/* Sidebar */}
       <div className="w-1/3 bg-neutral-950 flex flex-col h-screen">
         <Tabs defaultValue="bucket-list" className="w-full h-full flex flex-col p-0">
