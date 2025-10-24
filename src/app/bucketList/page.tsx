@@ -8,7 +8,6 @@ import { useSession } from 'next-auth/react'
 
 
 // Components
-import GoogleMap from './components/GoogleMap'
 import PlacesSearchbar from './components/PlaceSearchbar'
 import { PlaceResultCard } from './components/PlaceResultCard'
 import { BucketPlaceCard } from './components/BucketPlaceCard'
@@ -22,7 +21,7 @@ import { getBucketList, removePlaceFromBucketList, addPlaceToBucketList, markPla
 
 // Types
 import { BucketListPlace } from '@/types/bucketListTypes'
-import { PlainGoogleMap } from './components/GoogleMapComponent'
+import { GoogleMapComponent } from './components/GoogleMapComponent'
 
 
 // export const metadata: Metadata = {
@@ -50,7 +49,7 @@ import { PlainGoogleMap } from './components/GoogleMapComponent'
 
 
 export default function BucketList() {
-  const [placesResults, setPlacesResults] = useState<google.maps.places.Place[]>([]);
+  const [placesResults, setPlacesResults] = useState<BucketListPlace[]>([]);
   const [bucketListPlaces, setBucketListPlaces] = useState<BucketListPlace[]>([]);
   const [hoveredPlace, setHoveredPlace] = useState<string | null>(null); // Can be a Map Marker or a Place Card
 
@@ -89,7 +88,7 @@ export default function BucketList() {
     const prev = bucketListPlaces;
     try {
       setBucketListPlaces((prev) => prev.filter(place => place.id !== placeId));
-      await removePlaceFromBucketList(placeId, userId);
+      await removePlaceFromBucketList(placeId);
     }
     catch (err) {
       console.error("Error removing place:", err);
@@ -105,31 +104,17 @@ export default function BucketList() {
     @returns {Promise<boolean>} - A promise that resolves to true if the place was added successfully, false otherwise.
     @throws Will log an error if the addition fails.
    * */
-  async function handleAddPlaceToBucketList(place: google.maps.places.Place): Promise<boolean> {
+  async function handleAddPlaceToBucketList(place: BucketListPlace): Promise<boolean> {
     if (!userId) return false;
 
     // Check if the place is already in the bucket list
     const isAlreadyAdded = bucketListPlaces.some((p) => p.id === place.id);
     if (isAlreadyAdded) return false;
 
-
     try {
-      const formattedPlace: BucketListPlace = {
-        id: place.id,
-        formattedAddress: place.formattedAddress as string,
-        displayName: place.displayName as string,
-        location: {
-          lat: place.location!.lat(),
-          lng: place.location!.lng(),
-        },
-        dateAdded: new Date().toISOString(),
-        dateVisited: undefined,
-        googleMapsURI: place.googleMapsURI || undefined,
-        websiteURI: place.websiteURI || undefined,
-      };
-      await addPlaceToBucketList(formattedPlace);
+      await addPlaceToBucketList(place);
 
-      setBucketListPlaces((prev) => [...prev, formattedPlace]);
+      setBucketListPlaces((prev) => [...prev, place]);
 
       // Remove the place from the search results
       setPlacesResults((prev) => prev.filter(p => p.id !== place.id));
@@ -152,10 +137,10 @@ export default function BucketList() {
     if (!userId) return false;
     try {
       if (visited) {
-        await markPlaceAsVisited(placeId, userId);
+        await markPlaceAsVisited(placeId);
       }
       else {
-        await unmarkPlaceAsVisited(placeId, userId);
+        await unmarkPlaceAsVisited(placeId);
       }
 
       setBucketListPlaces(prev =>
@@ -178,7 +163,7 @@ export default function BucketList() {
     @param results - An array of google.maps.places.Place objects.
     @returns {void}
    * */
-  function handleSearchbarResults(results: google.maps.places.Place[]) {
+  function handleSearchbarResults(results: BucketListPlace[]) {
     // filter out places that are already in the bucket list
     const filteredPlaceResults = results.filter(place => !bucketListPlaces.some(bucketPlace => bucketPlace.id === place.id));
     setPlacesResults(filteredPlaceResults);
@@ -190,7 +175,7 @@ export default function BucketList() {
     <div className="flex flex-grow overflow-hidden h-full">
       {/* Map Section */}
       {/* <GoogleMap searchResultPlaces={placesResults} bucketListPlaces={bucketListPlaces} hoveredPlace={hoveredPlace} setHoveredPlace={setHoveredPlace} /> */}
-      <PlainGoogleMap />
+      <GoogleMapComponent />
       {/* Sidebar */}
       <div className="w-1/3 bg-neutral-950 flex flex-col h-screen">
         <Tabs defaultValue="bucket-list" className="w-full h-full flex flex-col p-0">

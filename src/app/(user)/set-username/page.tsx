@@ -16,7 +16,7 @@ import { useSession } from "next-auth/react";
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import SetUsernameForm from "@/components/forms/set-username-form"
 import { Button } from "@/components/ui/button"
-import { updateUsername } from "@/app/actions/user-profile-actions"
+import { updateUsername } from "@/actions/user-profile-actions"
 import ErrorMessage from "@/components/error-message";
 
 export default function UsernamePage() {

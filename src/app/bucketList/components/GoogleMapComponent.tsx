@@ -3,7 +3,7 @@ import { APIProvider, Map, MapCameraChangedEvent } from '@vis.gl/react-google-ma
 
 const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-export function PlainGoogleMap() {
+export function GoogleMapComponent() {
   if (!googleMapsApiKey) {
     throw new Error('Google Maps API key is not defined in environment variables.');
   }
