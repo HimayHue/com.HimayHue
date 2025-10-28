@@ -10,33 +10,24 @@ import {
 } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import type { Marker } from '@googlemaps/markerclusterer';
+import { MapMarkersProps, Place } from '@/types/bucketListTypes';
+import { sampleBucketList } from '@/lib/mock-data';
 
-const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-type Place = { key: string, location: google.maps.LatLngLiteral }
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-const locations: Place[] = [
-  { key: 'operaHouse', location: { lat: -33.8567844, lng: 151.213108 } },
-  { key: 'tarongaZoo', location: { lat: -33.8472767, lng: 151.2188164 } },
-  { key: 'manlyBeach', location: { lat: -33.8209738, lng: 151.2563253 } },
-  { key: 'hyderPark', location: { lat: -33.8690081, lng: 151.2052393 } },
-  { key: 'theRocks', location: { lat: -33.8587568, lng: 151.2058246 } },
-  { key: 'circularQuay', location: { lat: -33.858761, lng: 151.2055688 } },
-  { key: 'harbourBridge', location: { lat: -33.852228, lng: 151.2038374 } },
-  { key: 'kingsCross', location: { lat: -33.8737375, lng: 151.222569 } },
-  { key: 'botanicGardens', location: { lat: -33.864167, lng: 151.216387 } },
-  { key: 'museumOfSydney', location: { lat: -33.8636005, lng: 151.2092542 } },
-  { key: 'maritimeMuseum', location: { lat: -33.869395, lng: 151.198648 } },
-  { key: 'kingStreetWharf', location: { lat: -33.8665445, lng: 151.1989808 } },
-  { key: 'aquarium', location: { lat: -33.869627, lng: 151.202146 } },
-  { key: 'darlingHarbour', location: { lat: -33.87488, lng: 151.1987113 } },
-  { key: 'barangaroo', location: { lat: - 33.8605523, lng: 151.1972205 } },
-];
-
-export function MapMarkers(props: { Places: Place[] }) {
-
+/**
+ * Renders and clusters markers on the map for a given list of places.
+ * The color of the markers is determined by the `markerType` prop.
+ * @param {MapMarkersProps} props The component props.
+ * @param {Place[]} props.Places An array of place objects to display on the map.
+ * @param {'bucketList' | 'searchResult'} props.markerType The type of marker, which dictates its appearance. Can be either 'bucketList' or 'searchResult'.
+ * @returns A JSX element containing the map markers.
+ */
+export function MapMarkers({ Places, markerType }: MapMarkersProps) {
   const map = useMap();
   const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
   const clusterer = useRef<MarkerClusterer | null>(null);
+  const pinColor = markerType === 'bucketList' ? '#ffffffff' : '#488effff';
 
   // Initialize MarkerClusterer, if the map has changed
   useEffect(() => {
@@ -69,42 +60,48 @@ export function MapMarkers(props: { Places: Place[] }) {
 
   return (
     <>
-      {props.Places.map((poi: Place) => (
+      {Places.map((place: Place) => (
         <AdvancedMarker
-          key={poi.key}
-          position={poi.location}
-          ref={marker => setMarkerRef(marker, poi.key)}
+          key={place.key}
+          position={place.location}
+          ref={marker => setMarkerRef(marker, place.key)}
         >
-          <Pin background={'#FBBC04'} glyphColor={'#000'} borderColor={'#000'} />
+          <Pin background={pinColor} glyphColor={'#000'} borderColor={'#000'} />
         </AdvancedMarker>
       ))}
     </>
   );
-};
+}
 
 
 
+/**
+ * A component that renders a Google Map with a predefined set of locations.
+ * It sets up the API provider, map controls, and initial camera position.
+ * @returns A JSX element containing the configured Google Map.
+ */
 export function GoogleMapComponent() {
 
-  if (!googleMapsApiKey) {
+  if (!GOOGLE_API_KEY) {
     throw new Error('Google Maps API key is not defined in environment variables.');
   }
 
   return (
-    <APIProvider apiKey={googleMapsApiKey} onLoad={() => console.log('Maps API has loaded.')}>
-      <Map
-        defaultZoom={13}
-        defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
-        colorScheme='FOLLOW_SYSTEM'
-        mapId='a1079c9cea2794a7'
-        onCameraChanged={(event: MapCameraChangedEvent) =>
-          console.log('camera changed:', event.detail.center, 'zoom:', event.detail.zoom)
-        }>
-
-        <MapMarkers Places={locations} />
-
-      </Map>
-    </APIProvider>
+    <div className="w-full">
+      <APIProvider apiKey={GOOGLE_API_KEY} onLoad={() => console.log('Maps API has loaded.')}>
+        <Map
+          defaultZoom={13}
+          defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
+          mapTypeId='terrain'
+          colorScheme='FOLLOW_SYSTEM'
+          mapId='a1079c9cea2794a7'
+          onCameraChanged={(event: MapCameraChangedEvent) =>
+            console.log('camera changed:', event.detail.center, 'zoom:', event.detail.zoom)
+          }>
+          <MapMarkers Places={sampleBucketList} markerType='bucketList' />
+        </Map>
+      </APIProvider>
+    </div>
   );
 }
 

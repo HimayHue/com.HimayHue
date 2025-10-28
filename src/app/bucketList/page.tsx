@@ -5,242 +5,52 @@ import { useState, useEffect } from 'react'
 // Next.js & Routing
 import { useSession } from 'next-auth/react'
 
-
-
 // Components
-import PlacesSearchbar from './components/PlaceSearchbar'
-import { PlaceResultCard } from './components/PlaceResultCard'
-import { BucketPlaceCard } from './components/BucketPlaceCard'
-
-// UI
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-// Actions
-import { getBucketList, removePlaceFromBucketList, addPlaceToBucketList, markPlaceAsVisited, unmarkPlaceAsVisited } from '@/actions/bucketList'
+import { PlacesPanel } from './components/PlaceSearchbar'
 
 // Types
-import { BucketListPlace } from '@/types/bucketListTypes'
+import { BucketListPlace, Place } from '@/types/bucketListTypes'
 import { GoogleMapComponent } from './components/GoogleMapComponent'
 
-
-// export const metadata: Metadata = {
-//   title: "Bucket List - Create and Share Bucket Lists!",
-//   description: "Create your ultimate bucket list using Google Maps. Save dream destinations, organize your trips, and easily share them with friends.",
-//   openGraph: {
-//     title: "Bucket List - Create and Share Bucket Lists!",
-//     description: "Plan, save, and share your dream destinations using our interactive bucket list app powered by Google Maps.",
-//     url: "https://himayhue.com/bucketlist",
-//     siteName: "Himay's Developer Projects",
-//     images: [
-//       {
-//         url: "/bucketlist-og-image.png",
-//         width: 1200,
-//         height: 630,
-//         alt: "Bucket List OpenGraph Preview",
-//       },
-//     ],
-//     locale: "en_US",
-//     type: "website",
-//   },
-//   themeColor: "#dc2626",
-// };
+import { getBucketList } from '@/actions/bucketList';
 
 
 
 export default function BucketList() {
-  const [placesResults, setPlacesResults] = useState<BucketListPlace[]>([]);
-  const [bucketListPlaces, setBucketListPlaces] = useState<BucketListPlace[]>([]);
-  const [hoveredPlace, setHoveredPlace] = useState<string | null>(null); // Can be a Map Marker or a Place Card
-
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
+  const [bucketListPlaces, setBucketListPlaces] = useState<Place[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
-
-    const fetchBucketList = async () => {
-      try {
-        const data = await getBucketList(userId);
-        setBucketListPlaces(data);
-      }
-      catch (error) {
-        console.error('Error fetching bucket list:', error);
-      }
-    };
-
-    fetchBucketList();
+    if (userId) {
+      getBucketList(userId)
+        .then((places) => {
+          setBucketListPlaces(places);
+        })
+        .catch((error) => {
+          console.error("Error fetching bucket list places:", error);
+        });
+    }
   }, [userId]);
 
-  useEffect(() => {
-    console.log("Hovered place:", hoveredPlace);
-  }, [hoveredPlace]);
 
-
-  /** Handles removing a place from the bucket list.
-    @param placeId - The ID of the place to remove.
-    @returns {Promise<void>} - A promise that resolves when the place is removed.
-    @throws Will log an error if the removal fails.
-   * */
-  async function handleRemovePlaceToBucketList(placeId: string): Promise<void> {
-    if (!userId) return;
-    const prev = bucketListPlaces;
-    try {
-      setBucketListPlaces((prev) => prev.filter(place => place.id !== placeId));
-      await removePlaceFromBucketList(placeId);
-    }
-    catch (err) {
-      console.error("Error removing place:", err);
-      setBucketListPlaces(prev); // Revert state on failure
-      // Optionally show toast or alert
-    }
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-400">Please log in to view your bucket list.</p>
+      </div>
+    );
   }
-
-
-
-  /** Handles adding a place to the bucket list.
-    @param place - The place to add, as a google.maps.places.Place object.
-    @returns {Promise<boolean>} - A promise that resolves to true if the place was added successfully, false otherwise.
-    @throws Will log an error if the addition fails.
-   * */
-  async function handleAddPlaceToBucketList(place: BucketListPlace): Promise<boolean> {
-    if (!userId) return false;
-
-    // Check if the place is already in the bucket list
-    const isAlreadyAdded = bucketListPlaces.some((p) => p.id === place.id);
-    if (isAlreadyAdded) return false;
-
-    try {
-      await addPlaceToBucketList(place);
-
-      setBucketListPlaces((prev) => [...prev, place]);
-
-      // Remove the place from the search results
-      setPlacesResults((prev) => prev.filter(p => p.id !== place.id));
-
-      return true; // Indicate success
-    }
-    catch (err) {
-      console.error("Error adding place to bucket list:", err);
-      return false; // Indicate failure
-    }
-  }
-
-  /** Handles toggling the visited state of a place in the bucket list.
-    @param placeId - The ID of the place to toggle.
-    @param visited - The new visited state (true for visited, false for unvisited).
-    @returns {Promise<boolean>} - A promise that resolves to true if the state was toggled successfully, false otherwise.
-    @throws Will log an error if the toggle fails.
-   * */
-  async function handleToggleVisited(placeId: string, visited: boolean): Promise<boolean> {
-    if (!userId) return false;
-    try {
-      if (visited) {
-        await markPlaceAsVisited(placeId);
-      }
-      else {
-        await unmarkPlaceAsVisited(placeId);
-      }
-
-      setBucketListPlaces(prev =>
-        prev.map(place =>
-          place.id === placeId
-            ? { ...place, dateVisited: visited ? new Date().toISOString() : undefined }
-            : place
-        )
-      );
-
-      return true;
-    }
-    catch (err) {
-      console.error("Error toggling visited state:", err);
-      return false;
-    }
-  }
-
-  /** Handles the results from the Places Searchbar.
-    @param results - An array of google.maps.places.Place objects.
-    @returns {void}
-   * */
-  function handleSearchbarResults(results: BucketListPlace[]) {
-    // filter out places that are already in the bucket list
-    const filteredPlaceResults = results.filter(place => !bucketListPlaces.some(bucketPlace => bucketPlace.id === place.id));
-    setPlacesResults(filteredPlaceResults);
-  }
-
-
 
   return (
     <div className="flex flex-grow overflow-hidden h-full">
-      {/* Map Section */}
-      {/* <GoogleMap searchResultPlaces={placesResults} bucketListPlaces={bucketListPlaces} hoveredPlace={hoveredPlace} setHoveredPlace={setHoveredPlace} /> */}
       <GoogleMapComponent />
-      {/* Sidebar */}
-      <div className="w-1/3 bg-neutral-950 flex flex-col h-screen">
-        <Tabs defaultValue="bucket-list" className="w-full h-full flex flex-col p-0">
-          <TabsList className="w-full p-0">
-            <TabsTrigger value="bucket-list" className="w-1/2 rounded-none h-full">
-              Bucket List
-            </TabsTrigger>
-            <TabsTrigger value="search" className="w-1/2 rounded-none h-full">
-              Search
-            </TabsTrigger>
-          </TabsList>
 
-          <div className="flex-1 overflow-hidden">
-            <TabsContent
-              value="bucket-list"
-              className="data-[state=inactive]:hidden h-full"
-              forceMount
-            >
-              <ScrollArea className="h-full w-full">
-                {bucketListPlaces.length === 0 ? (
-                  <p className="text-gray-400 text-center py-4">
-                    Your bucket list is empty.
-                  </p>
-                ) : (
-                  bucketListPlaces.map((place) => (
-                    <BucketPlaceCard
-                      key={place.id}
-                      place={place}
-                      hoveredPlace={hoveredPlace}
-                      setHoveredPlace={setHoveredPlace}
-                      onRemove={handleRemovePlaceToBucketList}
-                      toggleVisit={handleToggleVisited}
-                    />
-                  ))
-                )}
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent
-              value="search"
-              className="data-[state=inactive]:hidden h-full"
-              forceMount
-            >
-              <PlacesSearchbar UpdatePlacesResults={handleSearchbarResults} />
-              <ScrollArea className="w-full flex-1 border-bg-white">
-                {placesResults.length === 0 ? (
-                  <p className="text-gray-400 text-center py-4">No results found</p>
-                ) : (
-                  placesResults.map((place) => (
-                    <PlaceResultCard
-                      key={place.id}
-                      place={place}
-                      hoveredPlace={hoveredPlace}
-                      setHoveredPlace={setHoveredPlace}
-                      onAdd={handleAddPlaceToBucketList}
-                    />
-                  ))
-                )}
-              </ScrollArea>
-            </TabsContent>
-          </div>
-        </Tabs>
+      <div className="w-1/3 bg-neutral-950 flex flex-col h-screen items-center p-2">
+        <PlacesPanel bucketListPlaces={bucketListPlaces} />
       </div>
-
-    </div>
+    </div >
   );
 }
 

@@ -7,7 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BiSearch } from "react-icons/bi";
 import { MdOutlineClear } from "react-icons/md";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Place } from '@/types/bucketListTypes';
+import {
+   Card,
+   CardAction,
+   CardContent,
+   CardDescription,
+   CardFooter,
+   CardHeader,
+   CardTitle,
+} from "@/components/ui/card"
 
 interface PlacesSearchbarProps {
    UpdatePlacesResults: (places: google.maps.places.Place[]) => void;
@@ -98,4 +108,48 @@ export default function PlacesSearchbar({ UpdatePlacesResults }: PlacesSearchbar
          </form>
       </Form>
    )
+}
+
+export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Place[] }) {
+   return (
+      <Tabs defaultValue="list" className="w-full">
+         <TabsList className="w-full">
+            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="search">Search</TabsTrigger>
+         </TabsList>
+         <TabsContent value="list">
+            <PlacesList places={bucketListPlaces} />
+         </TabsContent>
+         <TabsContent value="search">
+            <div className="mb-2">
+               <SearchResults />
+            </div>
+            <PlacesList places={bucketListPlaces} />
+         </TabsContent>
+      </Tabs>
+   );
+}
+
+export function PlacesList({ places }: { places: Place[] }) {
+   return (
+      <div className="flex-col flex flex-grow w-full overflow-y-auto gap-2">
+         {places.length === 0 ? (
+            <p className="text-gray-400 text-center mt-10">Your bucket list is empty. Start adding places!</p>
+         ) : (
+            places.map((place) => (
+               <Card key={place.key} className="">
+                  <CardHeader className="">{place.key}</CardHeader>
+               </Card>
+            ))
+         )}
+      </div>
+   );
+}
+
+export function SearchResults() {
+   return (
+      <div className="flex">
+         <Input placeholder="Search Results will appear here." className="w-full bg-neutral-800 text-white" />
+      </div>
+   );
 }

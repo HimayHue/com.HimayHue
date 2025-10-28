@@ -11,3 +11,18 @@ export type BucketListPlace = {
   googleMapsURI?: string;
   websiteURI?: string;
 };
+
+export type Place = { key: string, location: google.maps.LatLngLiteral };
+
+export type MapMarkersProps = {
+  Places: Place[];
+  markerType: 'bucketList' | 'searchResult';
+};
+
+export type GoogleMapProps = {
+  initialCenter: google.maps.LatLngLiteral;
+  initialZoom: number;
+  bucketListPlaces?: Place[];
+  searchResultsPlaces?: Place[];
+  userLocation?: google.maps.LatLngLiteral;
+};

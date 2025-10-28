@@ -1,9 +1,10 @@
 'use server';
 
 import { auth } from "@/auth";
-import { BucketListPlace } from "@/types/bucketListTypes";
+import { Place } from "@/types/bucketListTypes";
+import { sampleBucketList } from "@/lib/mock-data";
 
-export async function addPlaceToBucketList(place: BucketListPlace): Promise<boolean> {
+export async function addPlaceToBucketList(place: Place): Promise<boolean> {
    const session = await auth();
    const userId = session?.user?.id;
    if (!userId) throw new Error('User not authenticated');
@@ -11,7 +12,7 @@ export async function addPlaceToBucketList(place: BucketListPlace): Promise<bool
    console.log('Adding place to bucket list for user:', userId, 'Place:', place);
 
    try {
-      console.log(`Place ${place.id} added to bucket list for user ${userId}`);
+      console.log(`Place ${place.key} added to bucket list for user ${userId}`);
       return true;
    }
    catch (error) {
@@ -20,11 +21,11 @@ export async function addPlaceToBucketList(place: BucketListPlace): Promise<bool
    }
 }
 
-export async function getBucketList(userId: string): Promise<BucketListPlace[]> {
+export async function getBucketList(userId: string): Promise<Place[]> {
 
    try {
       console.log(`Fetched bucket list for user ${userId}`);
-      return [];
+      return sampleBucketList;
    }
    catch (error) {
       throw new Error("Failed to fetch bucket list: " + error);
