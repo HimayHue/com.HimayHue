@@ -73,41 +73,32 @@ export default function PlacesSearchbar({ UpdatePlacesResults }: PlacesSearchbar
 
    return (
       <Form {...form}>
-         <form onSubmit={form.handleSubmit(onSubmit)} className="border border-grey-300 w-full px-2 py-1">
-            <div className="flex items-center w-full">
-               <FormField
-                  control={form.control}
-                  name="searchInput"
-                  render={({ field }) => (
-                     <FormItem className="w-full">
-                        <FormControl>
-                           <input
-                              placeholder="Search Google Maps"
-                              {...field}
-                              onChange={(event) => field.onChange(event)}
-                              className="w-full bg-transparent border-none ml-2 placeholder:text-muted-foreground text-sm font-medium leading-tight focus:outline-none focus:ring-0 focus:border-none"
-                           />
-                        </FormControl>
-                     </FormItem>
-                  )}
+         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+            <div className="relative w-full">
+               <BiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+               <Input
+                  placeholder="Search Google Maps"
+                  {...form.register("searchInput")}
+                  className="w-full bg-transparent pl-10 pr-10" // Padding for icons
                />
-               <Button type="submit" variant="ghost">
-                  <BiSearch />
-               </Button>
-               <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                     form.setValue("searchInput", "");
-                     UpdatePlacesResults([]);
-                  }}
-               >
-                  <MdOutlineClear />
-               </Button>
+               {form.watch("searchInput") && (
+                  <Button
+                     type="button"
+                     variant="ghost"
+                     size="icon"
+                     className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                     onClick={() => {
+                        form.setValue("searchInput", "");
+                        UpdatePlacesResults([]);
+                     }}
+                  >
+                     <MdOutlineClear className="h-5 w-5" />
+                  </Button>
+               )}
             </div>
          </form>
       </Form>
-   )
+   );
 }
 
 export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Place[] }) {
@@ -117,15 +108,25 @@ export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Place[] })
             <TabsTrigger value="list">List</TabsTrigger>
             <TabsTrigger value="search">Search</TabsTrigger>
          </TabsList>
-         <TabsContent value="list">
-            <PlacesList places={bucketListPlaces} />
-         </TabsContent>
-         <TabsContent value="search">
-            <div className="mb-2">
-               <SearchResults />
+
+         <TabsContent value="list" className="space-y-2">
+            <div className="h-9 flex items-center justify-between px-3 border-b border-neutral-800">
+               <h3 className="font-semibold text-white">Bucket List</h3>
+               <span className="text-sm text-muted-foreground">
+                  {bucketListPlaces.length} {bucketListPlaces.length === 1 ? 'Place' : 'Places'}
+               </span>
             </div>
             <PlacesList places={bucketListPlaces} />
          </TabsContent>
+
+
+         <TabsContent value="search">
+            <div className="mb-2">
+               <PlacesSearchbar UpdatePlacesResults={() => { }} />
+            </div>
+            <PlacesList places={bucketListPlaces} />
+         </TabsContent>
+
       </Tabs>
    );
 }
@@ -146,10 +147,3 @@ export function PlacesList({ places }: { places: Place[] }) {
    );
 }
 
-export function SearchResults() {
-   return (
-      <div className="flex">
-         <Input placeholder="Search Results will appear here." className="w-full bg-neutral-800 text-white" />
-      </div>
-   );
-}
