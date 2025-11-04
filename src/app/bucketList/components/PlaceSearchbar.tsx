@@ -2,13 +2,12 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BiSearch } from "react-icons/bi";
 import { MdOutlineClear } from "react-icons/md";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Place } from '@/types/bucketListTypes';
 import {
    Card,
    CardAction,
@@ -18,10 +17,8 @@ import {
    CardHeader,
    CardTitle,
 } from "@/components/ui/card"
+import { useState, Dispatch, SetStateAction } from "react";
 
-interface PlacesSearchbarProps {
-   UpdatePlacesResults: (places: google.maps.places.Place[]) => void;
-}
 
 
 /**
@@ -29,7 +26,7 @@ interface PlacesSearchbarProps {
  * Takes in a search query and updates the Places parent state with the search results.
  *
  */
-export default function PlacesSearchbar({ UpdatePlacesResults }: PlacesSearchbarProps) {
+export default function PlacesSearchbar({ setPlacesResults }: { setPlacesResults: Dispatch<SetStateAction<google.maps.places.Place[]>> }) {
 
    // Validation schema using Zod
    const FormSchema = z.object({
@@ -59,7 +56,7 @@ export default function PlacesSearchbar({ UpdatePlacesResults }: PlacesSearchbar
       };
 
       const { places } = await Place.searchByText(request);
-      UpdatePlacesResults(places);
+      setPlacesResults(places);
 
    }
 
@@ -89,7 +86,7 @@ export default function PlacesSearchbar({ UpdatePlacesResults }: PlacesSearchbar
                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                      onClick={() => {
                         form.setValue("searchInput", "");
-                        UpdatePlacesResults([]);
+                        setPlacesResults([]);
                      }}
                   >
                      <MdOutlineClear className="h-5 w-5" />
@@ -101,7 +98,9 @@ export default function PlacesSearchbar({ UpdatePlacesResults }: PlacesSearchbar
    );
 }
 
-export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Place[] }) {
+export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: google.maps.places.Place[] }) {
+   const [searchResultsPlaces, setSearchResultsPlaces] = useState<google.maps.places.Place[]>([]);
+
    return (
       <Tabs defaultValue="list" className="w-full">
          <TabsList className="w-full">
@@ -122,24 +121,24 @@ export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Place[] })
 
          <TabsContent value="search">
             <div className="mb-2">
-               <PlacesSearchbar UpdatePlacesResults={() => { }} />
+               <PlacesSearchbar setPlacesResults={setSearchResultsPlaces} />
             </div>
-            <PlacesList places={bucketListPlaces} />
+            <PlacesList places={searchResultsPlaces} />
          </TabsContent>
 
       </Tabs>
    );
 }
 
-export function PlacesList({ places }: { places: Place[] }) {
+export function PlacesList({ places }: { places: (google.maps.places.Place)[] }) {
    return (
       <div className="flex-col flex flex-grow w-full overflow-y-auto gap-2">
          {places.length === 0 ? (
             <p className="text-gray-400 text-center mt-10">Your bucket list is empty. Start adding places!</p>
          ) : (
             places.map((place) => (
-               <Card key={place.key} className="">
-                  <CardHeader className="">{place.key}</CardHeader>
+               <Card key={place.id} className="">
+                  <CardHeader className="">{place.id}</CardHeader>
                </Card>
             ))
          )}

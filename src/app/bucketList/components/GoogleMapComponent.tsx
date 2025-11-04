@@ -10,8 +10,7 @@ import {
 } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import type { Marker } from '@googlemaps/markerclusterer';
-import { MapMarkersProps, Place } from '@/types/bucketListTypes';
-import { sampleBucketList } from '@/lib/mock-data';
+import { GoogleMapProps, MapMarkersProps } from '@/types/bucketListTypes';
 
 const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -60,11 +59,11 @@ export function MapMarkers({ Places, markerType }: MapMarkersProps) {
 
   return (
     <>
-      {Places.map((place: Place) => (
+      {Places.map((place: google.maps.Place) => (
         <AdvancedMarker
-          key={place.key}
+          key={place.placeId}
           position={place.location}
-          ref={marker => setMarkerRef(marker, place.key)}
+          ref={marker => setMarkerRef(marker, place.placeId!)}
         >
           <Pin background={pinColor} glyphColor={'#000'} borderColor={'#000'} />
         </AdvancedMarker>
@@ -80,7 +79,7 @@ export function MapMarkers({ Places, markerType }: MapMarkersProps) {
  * It sets up the API provider, map controls, and initial camera position.
  * @returns A JSX element containing the configured Google Map.
  */
-export function GoogleMapComponent() {
+export function GoogleMap({ bucketListPlaces, searchResultsPlaces, userLocation }: GoogleMapProps) {
 
   if (!GOOGLE_API_KEY) {
     throw new Error('Google Maps API key is not defined in environment variables.');
@@ -98,7 +97,8 @@ export function GoogleMapComponent() {
           onCameraChanged={(event: MapCameraChangedEvent) =>
             console.log('camera changed:', event.detail.center, 'zoom:', event.detail.zoom)
           }>
-          <MapMarkers Places={sampleBucketList} markerType='bucketList' />
+          {bucketListPlaces && <MapMarkers Places={bucketListPlaces} markerType='bucketList' />}
+          {searchResultsPlaces && <MapMarkers Places={searchResultsPlaces} markerType='searchResult' />}
         </Map>
       </APIProvider>
     </div>

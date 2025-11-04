@@ -1,9 +1,9 @@
-import { GoogleMapComponent } from "../bucketList/components/GoogleMapComponent";
+import { GoogleMap } from "../bucketList/components/GoogleMapComponent";
 
 export default function GoogleMapPage() {
    return (
       <div className="h-screen w-full">
-         <GoogleMapComponent />
+         <GoogleMap />
       </div>
    );
 }

@@ -9,18 +9,20 @@ import { useSession } from 'next-auth/react'
 import { PlacesPanel } from './components/PlaceSearchbar'
 
 // Types
-import { BucketListPlace, Place } from '@/types/bucketListTypes'
-import { GoogleMapComponent } from './components/GoogleMapComponent'
+import { GoogleMap } from './components/GoogleMapComponent'
 
 import { getBucketList } from '@/actions/bucketList';
+import { SignInButton } from '@/components/signin-buttons'
+import { sampleBucketList } from '@/lib/mock-data'
 
 
 
-export default function BucketList() {
+export default function BucketListPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  const [bucketListPlaces, setBucketListPlaces] = useState<Place[]>([]);
+  const [bucketListPlaces, setBucketListPlaces] = useState<google.maps.places.Place[]>([]);
+  const [searchResultsPlaces, setSearchResultsPlaces] = useState<google.maps.Place[]>([]);
 
   useEffect(() => {
     if (userId) {
@@ -39,13 +41,14 @@ export default function BucketList() {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-gray-400">Please log in to view your bucket list.</p>
+        <SignInButton />
       </div>
     );
   }
 
   return (
     <div className="flex flex-grow overflow-hidden h-full">
-      <GoogleMapComponent />
+      <GoogleMap bucketListPlaces={sampleBucketList} />
 
       <div className="w-1/3 bg-neutral-950 flex flex-col h-screen items-center p-2">
         <PlacesPanel bucketListPlaces={bucketListPlaces} />
