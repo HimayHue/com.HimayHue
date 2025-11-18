@@ -4,8 +4,9 @@ export const sampleBucketList: google.maps.places.Place[] = [
     id: 'operaHouse',
     displayName: 'Sydney Opera House',
     formattedAddress: 'Bennelong Point, Sydney NSW 2000, Australia',
-    location: { lat: () => -33.8567844, lng: () => 151.2152967 },
-    dateAdded: new Date().toISOString(),
+    location: new google.maps.LatLng(-33.8567844, 151.2152967),
+    isOpen: false,
+
   },
   {
     id: 'tarongaZoo',
