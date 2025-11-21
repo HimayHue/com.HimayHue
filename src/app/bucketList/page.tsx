@@ -13,8 +13,6 @@ import { GoogleMap } from './components/GoogleMapComponent'
 
 import { getBucketList } from '@/actions/bucketList';
 import { SignInButton } from '@/components/signin-buttons'
-import { sampleBucketList } from '@/lib/mock-data'
-
 
 
 export default function BucketListPage() {
@@ -48,7 +46,7 @@ export default function BucketListPage() {
 
   return (
     <div className="flex flex-grow overflow-hidden h-full">
-      <GoogleMap bucketListPlaces={sampleBucketList} />
+      <GoogleMap bucketListPlaces={bucketListPlaces} />
 
       <div className="w-1/3 bg-neutral-950 flex flex-col h-screen items-center p-2">
         <PlacesPanel bucketListPlaces={bucketListPlaces} />
