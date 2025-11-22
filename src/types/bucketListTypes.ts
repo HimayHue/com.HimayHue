@@ -1,10 +1,10 @@
 export type MapMarkersProps = {
-  Places: google.maps.Place[];
+  Places: Partial<google.maps.places.Place>[];
   markerType: 'bucketList' | 'searchResult';
 };
 
 export type GoogleMapProps = {
-  bucketListPlaces?: google.maps.Place[];
-  searchResultsPlaces?: google.maps.Place[];
+  bucketListPlaces: Partial<google.maps.places.Place>[];
+  searchResultsPlaces?: Partial<google.maps.places.Place>[];
   userLocation?: google.maps.LatLngLiteral;
 };

@@ -19,8 +19,8 @@ export default function BucketListPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  const [bucketListPlaces, setBucketListPlaces] = useState<google.maps.places.Place[]>([]);
-  const [searchResultsPlaces, setSearchResultsPlaces] = useState<google.maps.Place[]>([]);
+  const [bucketListPlaces, setBucketListPlaces] = useState<Partial<google.maps.places.Place>[]>([]);
+  const [searchResultsPlaces, setSearchResultsPlaces] = useState<Partial<google.maps.places.Place>[]>([]);
 
   useEffect(() => {
     if (userId) {
@@ -49,7 +49,7 @@ export default function BucketListPage() {
       <GoogleMap bucketListPlaces={bucketListPlaces} />
 
       <div className="w-1/3 bg-neutral-950 flex flex-col h-screen items-center p-2">
-        <PlacesPanel bucketListPlaces={bucketListPlaces} />
+        <PlacesPanel bucketListPlaces={searchResultsPlaces} />
       </div>
     </div >
   );
