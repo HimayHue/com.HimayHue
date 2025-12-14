@@ -98,7 +98,7 @@ export default function PlacesSearchbar({ setPlacesResults }: { setPlacesResults
    );
 }
 
-export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: google.maps.places.Place[] }) {
+export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Partial<google.maps.places.Place>[] }) {
    const [searchResultsPlaces, setSearchResultsPlaces] = useState<google.maps.places.Place[]>([]);
 
    return (
@@ -130,7 +130,7 @@ export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: google.map
    );
 }
 
-export function PlacesList({ places }: { places: (google.maps.places.Place)[] }) {
+export function PlacesList({ places }: { places: (Partial<google.maps.places.Place>)[] }) {
    return (
       <div className="flex-col flex flex-grow w-full overflow-y-auto gap-2">
          {places.length === 0 ? (
