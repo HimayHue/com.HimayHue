@@ -17,16 +17,53 @@ import {
    CardHeader,
    CardTitle,
 } from "@/components/ui/card"
-import { useState, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 
+export function PlacesPanel({
+   bucketListPlaces,
+   searchResultsPlaces,
+   setSearchResultsPlaces,
+}: {
+   bucketListPlaces: Partial<google.maps.places.Place>[];
+   searchResultsPlaces: Partial<google.maps.places.Place>[];
+   setSearchResultsPlaces: Dispatch<SetStateAction<Partial<google.maps.places.Place>[]>>;
+}) {
+   return (
+      <Tabs defaultValue="list" className="w-full">
+         <TabsList className="w-full">
+            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="search">Search</TabsTrigger>
+         </TabsList>
+
+         <TabsContent value="list" className="space-y-2">
+            <div className="h-9 flex items-center justify-between px-3 border-b border-neutral-800">
+               <h3 className="font-semibold text-white">Bucket List</h3>
+               <span className="text-sm text-muted-foreground">
+                  {bucketListPlaces.length} {bucketListPlaces.length === 1 ? 'Place' : 'Places'}
+               </span>
+            </div>
+            <PlacesList places={bucketListPlaces} />
+         </TabsContent>
+
+
+         <TabsContent value="search">
+            <div className="mb-2">
+               <PlacesSearchbar setPlacesResults={setSearchResultsPlaces} />
+            </div>
+            <PlacesList places={searchResultsPlaces} />
+         </TabsContent>
+
+      </Tabs>
+   );
+}
 
 /**
  * MapsSearchForm Component
  * Takes in a search query and updates the Places parent state with the search results.
  *
  */
-export default function PlacesSearchbar({ setPlacesResults }: { setPlacesResults: Dispatch<SetStateAction<google.maps.places.Place[]>> }) {
+export default function PlacesSearchbar({ setPlacesResults }: { setPlacesResults: Dispatch<SetStateAction<Partial<google.maps.places.Place>[]>> }) {
 
    // Validation schema using Zod
    const FormSchema = z.object({
@@ -98,37 +135,7 @@ export default function PlacesSearchbar({ setPlacesResults }: { setPlacesResults
    );
 }
 
-export function PlacesPanel({ bucketListPlaces }: { bucketListPlaces: Partial<google.maps.places.Place>[] }) {
-   const [searchResultsPlaces, setSearchResultsPlaces] = useState<google.maps.places.Place[]>([]);
 
-   return (
-      <Tabs defaultValue="list" className="w-full">
-         <TabsList className="w-full">
-            <TabsTrigger value="list">List</TabsTrigger>
-            <TabsTrigger value="search">Search</TabsTrigger>
-         </TabsList>
-
-         <TabsContent value="list" className="space-y-2">
-            <div className="h-9 flex items-center justify-between px-3 border-b border-neutral-800">
-               <h3 className="font-semibold text-white">Bucket List</h3>
-               <span className="text-sm text-muted-foreground">
-                  {bucketListPlaces.length} {bucketListPlaces.length === 1 ? 'Place' : 'Places'}
-               </span>
-            </div>
-            <PlacesList places={bucketListPlaces} />
-         </TabsContent>
-
-
-         <TabsContent value="search">
-            <div className="mb-2">
-               <PlacesSearchbar setPlacesResults={setSearchResultsPlaces} />
-            </div>
-            <PlacesList places={searchResultsPlaces} />
-         </TabsContent>
-
-      </Tabs>
-   );
-}
 
 export function PlacesList({ places }: { places: (Partial<google.maps.places.Place>)[] }) {
    return (
@@ -138,7 +145,9 @@ export function PlacesList({ places }: { places: (Partial<google.maps.places.Pla
          ) : (
             places.map((place) => (
                <Card key={place.id} className="">
-                  <CardHeader className="">{place.id}</CardHeader>
+                  <CardHeader>
+                     <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(place, null, 2)}</pre>
+                  </CardHeader>
                </Card>
             ))
          )}

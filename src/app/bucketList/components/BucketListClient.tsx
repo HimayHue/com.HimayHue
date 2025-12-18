@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { getBucketList } from "@/actions/bucketList";
 import { GoogleMap } from "./GoogleMapComponent";
 import { PlacesPanel } from "./PlaceSearchbar";
-import { getBrowserLocation } from "@/lib/geolocation";
-
-type LatLng = { lat: number; lng: number };
+import { getUsersLocation } from "@/lib/geolocation";
 
 
 export default function BucketListClient({
@@ -19,30 +17,28 @@ export default function BucketListClient({
    const [bucketListPlaces, setBucketListPlaces] = useState(initialBucketListPlaces);
    const [searchResultsPlaces, setSearchResultsPlaces] = useState<Partial<google.maps.places.Place>[]>([]);
 
-   // optional: re-fetch after mount if you want freshest data
-   useEffect(() => {
-      getBucketList(userId).then(setBucketListPlaces).catch(console.error);
-   }, [userId]);
 
    // Get user's current location
-   const [userLoc, setUserLoc] = useState<LatLng | null>(null);
-   const [locError, setLocError] = useState<string | null>(null);
+   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
    useEffect(() => {
-      getBrowserLocation()
-         .then((pos) => {
-            setUserLoc({
-               lat: pos.coords.latitude,
-               lng: pos.coords.longitude,
+      getUsersLocation()
+         .then((location) => {
+            setUserLocation({
+               lat: location.coords.latitude,
+               lng: location.coords.longitude,
             });
          })
-         .catch((err) => setLocError(err.message));
    }, []);
 
    return (
       <div className="flex flex-grow overflow-hidden h-full">
-         <GoogleMap bucketListPlaces={bucketListPlaces} />
+         <GoogleMap bucketListPlaces={bucketListPlaces} searchResultsPlaces={searchResultsPlaces} userLocation={userLocation ?? undefined} />
          <div className="w-1/3 bg-neutral-950 flex flex-col h-screen items-center p-2">
-            <PlacesPanel bucketListPlaces={searchResultsPlaces} />
+            <PlacesPanel
+               bucketListPlaces={bucketListPlaces}
+               searchResultsPlaces={searchResultsPlaces}
+               setSearchResultsPlaces={setSearchResultsPlaces}
+            />
          </div>
       </div>
    );
