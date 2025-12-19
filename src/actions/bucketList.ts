@@ -10,12 +10,12 @@ export async function addPlaceToBucketList(place: Partial<google.maps.places.Pla
    console.log('Adding place to bucket list for user:', userId, 'Place:', place);
 
    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
       console.log(`Place ${place.id} added to bucket list for user ${userId}`);
       return true;
    }
    catch (error) {
       throw new Error("Failed to add place to bucket list: " + error);
-      return false;
    }
 }
 

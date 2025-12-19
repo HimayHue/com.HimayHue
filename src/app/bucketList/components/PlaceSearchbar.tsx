@@ -18,6 +18,9 @@ import {
    CardTitle,
 } from "@/components/ui/card"
 import { Dispatch, SetStateAction } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { addPlaceToBucketList } from "@/actions/bucketList";
+import { handleAddPlaceToBucketList } from "@/lib/bucketlist";
 
 
 export function PlacesPanel({
@@ -30,13 +33,13 @@ export function PlacesPanel({
    setSearchResultsPlaces: Dispatch<SetStateAction<Partial<google.maps.places.Place>[]>>;
 }) {
    return (
-      <Tabs defaultValue="list" className="w-full">
+      <Tabs defaultValue="list" className="flex h-full w-full flex-col">
          <TabsList className="w-full">
             <TabsTrigger value="list">List</TabsTrigger>
             <TabsTrigger value="search">Search</TabsTrigger>
          </TabsList>
 
-         <TabsContent value="list" className="space-y-2">
+         <TabsContent value="list" className="flex min-h-0 flex-1 flex-col space-y-2">
             <div className="h-9 flex items-center justify-between px-3 border-b border-neutral-800">
                <h3 className="font-semibold text-white">Bucket List</h3>
                <span className="text-sm text-muted-foreground">
@@ -47,7 +50,7 @@ export function PlacesPanel({
          </TabsContent>
 
 
-         <TabsContent value="search">
+         <TabsContent value="search" className="flex min-h-0 flex-1 flex-col">
             <div className="mb-2">
                <PlacesSearchbar setPlacesResults={setSearchResultsPlaces} />
             </div>
@@ -139,19 +142,26 @@ export default function PlacesSearchbar({ setPlacesResults }: { setPlacesResults
 
 export function PlacesList({ places }: { places: (Partial<google.maps.places.Place>)[] }) {
    return (
-      <div className="flex-col flex flex-grow w-full overflow-y-auto gap-2">
+      <ScrollArea className="flex w-full flex-1 min-h-full flex-col px-3">
          {places.length === 0 ? (
             <p className="text-gray-400 text-center mt-10">Your bucket list is empty. Start adding places!</p>
          ) : (
             places.map((place) => (
-               <Card key={place.id} className="">
-                  <CardHeader>
-                     <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(place, null, 2)}</pre>
-                  </CardHeader>
-               </Card>
+               <PlaceCard key={place.id} place={place} />
             ))
          )}
-      </div>
+      </ScrollArea>
    );
 }
 
+export function PlaceCard({ place }: { place: Partial<google.maps.places.Place> }) {
+   return (
+      <Card>
+         <CardHeader>
+            <CardTitle>{place.displayName}</CardTitle>
+            <CardDescription>{place.formattedAddress}</CardDescription>
+            <Button onClick={() => handleAddPlaceToBucketList(place)} className="mt-2 hover:cursor-pointer">Add To Bucket List</Button>
+         </CardHeader>
+      </Card>
+   );
+}

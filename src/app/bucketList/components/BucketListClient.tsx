@@ -17,6 +17,8 @@ export default function BucketListClient({
    const [bucketListPlaces, setBucketListPlaces] = useState(initialBucketListPlaces);
    const [searchResultsPlaces, setSearchResultsPlaces] = useState<Partial<google.maps.places.Place>[]>([]);
 
+   console.log(`Search Results are: ${JSON.stringify(searchResultsPlaces)}`);
+
 
    // Get user's current location
    const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
