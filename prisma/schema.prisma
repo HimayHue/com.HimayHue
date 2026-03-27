@@ -81,10 +81,10 @@ model BucketListPlace {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   bucketListId String   @db.ObjectId
   placeId      String
-  name         String
+  displayName  String
   address      String
-  lat          Float
-  lng          Float
+  latitude     Float
+  longitude    Float
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

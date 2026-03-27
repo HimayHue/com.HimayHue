@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getBucketList } from "@/actions/bucketList";
-import BucketListClient from "./components/BucketListClient";
+import BucketListClient from "./_components/BucketListClient";
 
 export default async function BucketListPage() {
   const session = await auth();

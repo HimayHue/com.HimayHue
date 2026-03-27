@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getBucketList } from "@/actions/bucketList";
 import { GoogleMap } from "./GoogleMapComponent";
-import { PlacesPanel } from "./PlaceSearchbar";
+import { PlacesPanel } from "./PlacesPanel";
 import { getUsersLocation } from "@/lib/geolocation";
 
 
@@ -17,7 +17,6 @@ export default function BucketListClient({
    const [bucketListPlaces, setBucketListPlaces] = useState(initialBucketListPlaces);
    const [searchResultsPlaces, setSearchResultsPlaces] = useState<Partial<google.maps.places.Place>[]>([]);
 
-   console.log(`Search Results are: ${JSON.stringify(searchResultsPlaces)}`);
 
 
    // Get user's current location

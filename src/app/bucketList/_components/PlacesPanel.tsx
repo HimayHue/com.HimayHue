@@ -35,10 +35,11 @@ export function PlacesPanel({
    return (
       <Tabs defaultValue="list" className="flex h-full w-full flex-col">
          <TabsList className="w-full">
-            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="list">Bucket List</TabsTrigger>
             <TabsTrigger value="search">Search</TabsTrigger>
          </TabsList>
 
+         {/* Bucket List Panel */}
          <TabsContent value="list" className="flex min-h-0 flex-1 flex-col space-y-2">
             <div className="h-9 flex items-center justify-between px-3 border-b border-neutral-800">
                <h3 className="font-semibold text-white">Bucket List</h3>
@@ -50,6 +51,7 @@ export function PlacesPanel({
          </TabsContent>
 
 
+         {/* Places Search Panel */}
          <TabsContent value="search" className="flex min-h-0 flex-1 flex-col">
             <div className="mb-2">
                <PlacesSearchbar setPlacesResults={setSearchResultsPlaces} />
@@ -154,13 +156,14 @@ export function PlacesList({ places }: { places: (Partial<google.maps.places.Pla
    );
 }
 
+
 export function PlaceCard({ place }: { place: Partial<google.maps.places.Place> }) {
    return (
       <Card>
          <CardHeader>
             <CardTitle>{place.displayName}</CardTitle>
             <CardDescription>{place.formattedAddress}</CardDescription>
-            <Button onClick={() => handleAddPlaceToBucketList(place)} className="mt-2 hover:cursor-pointer">Add To Bucket List</Button>
+            {/* <Button onClick={() => handleAddPlaceToBucketList(place)} className="mt-2 hover:cursor-pointer">Add To Bucket List</Button> */}
          </CardHeader>
       </Card>
    );
