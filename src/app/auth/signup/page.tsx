@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signUpSchema } from "@/lib/zod";
-import { handleCredentialsSignUp } from "@/app/actions/auth-actions";
+import { handleCredentialsSignUp } from "@/actions/auth-actions";
 import CredentialsSignUpForm from "@/components/forms/credentials-signup-form";
 import { GoogleSignInButton } from "@/components/signin-buttons";
 import { signIn } from "next-auth/react";
@@ -52,9 +52,9 @@ export default function SignUp() {
                password: values.password,
                redirect: false,
             });
-            
+
             console.log("Sign-in result:", signInResult);
-            
+
             if (signInResult?.error) {
                setGlobalError("Account created but login failed. Please try signing in.");
             } else if (signInResult?.ok) {

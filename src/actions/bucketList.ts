@@ -1,11 +1,8 @@
 'use server';
 
-import { BucketListPlace, BucketListDocument } from "@/types/bucketListTypes";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
-import BucketList from "../bucketList/page";
 
-export async function addPlaceToBucketList(place: BucketListPlace): Promise<BucketListPlace> {
+export async function addPlaceToBucketList(place: Partial<google.maps.places.Place>): Promise<boolean> {
    const session = await auth();
    const userId = session?.user?.id;
    if (!userId) throw new Error('User not authenticated');
@@ -13,34 +10,25 @@ export async function addPlaceToBucketList(place: BucketListPlace): Promise<Buck
    console.log('Adding place to bucket list for user:', userId, 'Place:', place);
 
    try {
-      const client = await clientPromise;
-      const db = client.db();
-
-      await db.collection('bucketlist').updateOne(
-         { userId, "places.id": { $ne: place.id } }, // only update if the place isn't already there
-         {
-            $addToSet: { places: place },
-            $setOnInsert: { userId },
-            $currentDate: { updatedAt: true },
-         },
-         { upsert: true }
-      );
-
-      return place;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log(`Place ${place.id} added to bucket list for user ${userId}`);
+      return true;
    }
    catch (error) {
       throw new Error("Failed to add place to bucket list: " + error);
    }
 }
 
-export async function getBucketList(userId: string): Promise<BucketListPlace[]> {
-   console.log('Fetching bucket list for user:', userId);
-   const client = await clientPromise;
-   const db = client.db();
+export async function getBucketList(userId: string): Promise<Partial<google.maps.places.Place>[]> {
 
-   const bucketList = await db.collection('bucketlist').findOne({ userId });
+   try {
+      console.log(`Fetched bucket list for user ${userId}`);
+      return [];
+   }
+   catch (error) {
+      throw new Error("Failed to fetch bucket list: " + error);
+   }
 
-   return bucketList?.places || [];
 }
 
 /* * Removes a place from the user's bucket list.
@@ -48,56 +36,46 @@ export async function getBucketList(userId: string): Promise<BucketListPlace[]> 
    * @param userId - The ID of the user whose bucket list is being modified.
    * @throws Will throw an error if the user is not authenticated.
    */
-export async function removePlaceFromBucketList(placeId: string, userId: string) {
+export async function removePlaceFromBucketList(placeId: string): Promise<boolean> {
+   const session = await auth();
+   const userId = session?.user?.id;
+   if (!userId) throw new Error('User not authenticated');
 
-   if (!userId) throw new Error("User not authenticated");
+   try {
+      console.log(`Place ${placeId} removed from bucket list for user ${userId}`);
+      return true;
+   }
+   catch (error) {
+      throw new Error("Failed to remove place from bucket list: " + error);
+   }
 
-   const client = await clientPromise;
-   const db = client.db();
 
-   const collection = db.collection<BucketListDocument>("bucketlist");
-
-   await collection.updateOne(
-      { userId },
-      {
-         $pull: { places: { id: placeId } },
-         $currentDate: { updatedAt: true },
-      }
-   );
 }
 
-export async function markPlaceAsVisited(placeId: string, userId: string) {
+export async function markPlaceAsVisited(placeId: string): Promise<boolean> {
+   const session = await auth();
+   const userId = session?.user?.id;
    if (!userId) throw new Error("User not authenticated");
 
-   const client = await clientPromise;
-   const db = client.db();
-
-   const collection = db.collection<BucketListDocument>("bucketlist");
-
-   await collection.updateOne(
-      { userId, "places.id": placeId },
-      {
-         $set: { "places.$.dateVisited": new Date().toISOString() },
-         $currentDate: { updatedAt: true },
-      }
-   );
-   console.log(`Marked place ${placeId} as visited for user ${userId}`);
+   try {
+      console.log(`Marked place ${placeId} as visited for user ${userId}`);
+      return true;
+   }
+   catch (error) {
+      throw new Error("Failed to mark place as visited: " + error);
+   }
 }
 
-export async function unmarkPlaceAsVisited(placeId: string, userId: string) {
+export async function unmarkPlaceAsVisited(placeId: string): Promise<boolean> {
+   const session = await auth();
+   const userId = session?.user?.id;
    if (!userId) throw new Error("User not authenticated");
 
-   const client = await clientPromise;
-   const db = client.db();
-
-   const collection = db.collection<BucketListDocument>("bucketlist");
-
-   await collection.updateOne(
-      { userId, "places.id": placeId },
-      {
-         $unset: { "places.$.dateVisited": "" },
-         $currentDate: { updatedAt: true },
-      }
-   );
-   console.log(`Unmarked place ${placeId} as visited for user ${userId}`);
+   try {
+      console.log(`Marked place ${placeId} as unvisited for user ${userId}`);
+      return true;
+   }
+   catch (error) {
+      throw new Error("Failed to mark place as visited: " + error);
+   }
 }

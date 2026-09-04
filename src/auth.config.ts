@@ -118,7 +118,7 @@ const config = {
 
 
    },
-   debug: true,
+   debug: false,
 } satisfies NextAuthConfig
 
 export default config

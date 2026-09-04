@@ -32,54 +32,6 @@ export async function handleCredentialsSignin({ email, password }: {
    }
 }
 
-/**
- * Attempts to sign in a user using email and password credentials.
- * If successful, redirects the user to the "/set-username" page.
- * Handles authentication errors and returns a user-friendly message for known error types.
- *
- * @param params - An object containing the user's email and password.
- * @param params.email - The user's email address.
- * @param params.password - The user's password.
- * @returns A promise that resolves to an object with a `message` property if an authentication error occurs,
- *          or throws the error if it is not an instance of `AuthError`.
- */
-export async function finishCredentialsSignUp({ email, password }: {
-   email: string,
-   password: string
-}) {
-   try {
-      await signIn("credentials", { email, password, redirectTo: "/dashboard" });
-   }
-   catch (error) {
-      if (error instanceof AuthError) {
-         switch (error.type) {
-            case 'CredentialsSignin':
-               return {
-                  message: 'Invalid credentials',
-               }
-            default:
-               return {
-                  message: 'Something went wrong.',
-               }
-         }
-      }
-      throw error;
-   }
-}
-
-
-export async function handleGithubSignin() {
-   await signIn("github", { redirectTo: "/dashboard" });
-}
-
-export async function handleGoogleSignin() {
-   await signIn("google", { redirectTo: "/dashboard" });
-}
-
-export async function handleSignOut() {
-   await signOut();
-}
-
 
 export async function handleCredentialsSignUp({ name, username, email, password, confirmPassword }: {
    name: string,
@@ -135,4 +87,58 @@ export async function handleCredentialsSignUp({ name, username, email, password,
       return { success: false, message: "An unexpected error occurred. Please try again." };
    }
 }
+
+
+/**
+ * Attempts to sign in a user using email and password credentials.
+ * If successful, redirects the user to the "/set-username" page.
+ * Handles authentication errors and returns a user-friendly message for known error types.
+ *
+ * @param params - An object containing the user's email and password.
+ * @param params.email - The user's email address.
+ * @param params.password - The user's password.
+ * @returns A promise that resolves to an object with a `message` property if an authentication error occurs,
+ *          or throws the error if it is not an instance of `AuthError`.
+ */
+export async function finishCredentialsSignUp({ email, password }: {
+   email: string,
+   password: string
+}) {
+   try {
+      await signIn("credentials", { email, password, redirectTo: "/dashboard" });
+   }
+   catch (error) {
+      if (error instanceof AuthError) {
+         switch (error.type) {
+            case 'CredentialsSignin':
+               return {
+                  message: 'Invalid credentials',
+               }
+            default:
+               return {
+                  message: 'Something went wrong.',
+               }
+         }
+      }
+      throw error;
+   }
+}
+
+
+export async function handleGithubSignin() {
+   await signIn("github", { redirectTo: "/dashboard" });
+}
+
+
+export async function handleGoogleSignin() {
+   await signIn("google", { redirectTo: "/dashboard" });
+}
+
+
+export async function handleSignOut() {
+   await signOut();
+}
+
+
+
 
