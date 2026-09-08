@@ -1,5 +1,5 @@
 
-import { object, string } from "zod";
+import z, { object, string } from "zod";
 
 //TODO: consider moving these constants to a separate file for better organization
 export const USERNAME_MINIMUM_LENGTH = 3;
@@ -16,7 +16,7 @@ export const PASSWORD_MAXIMUM_LENGTH = 32;
  *
  * Error messages are provided for each validation rule.
  */
-export const emailSignInSchema = object({
+export const emailSignInSchema = z.object({
    email: string({ required_error: "Email is required" })
       .min(1, "Email is required")
       .email("Invalid email"),

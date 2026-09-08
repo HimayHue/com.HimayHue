@@ -9,8 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signUpSchema } from "@/lib/zod";
 import { handleCredentialsSignUp } from "@/actions/auth-actions";
-import CredentialsSignUpForm from "@/components/forms/credentials-signup-form";
-import { GoogleSignInButton } from "@/components/signin-buttons";
+import CredentialsSignUpForm from "@/components/forms/credentials-sign-up-form";
+import { GoogleSignInButton } from "@/components/buttons/sign-in-buttons";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 

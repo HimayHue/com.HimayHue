@@ -2,7 +2,7 @@
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 import { FcGoogle } from "react-icons/fc";
 
 /**
@@ -13,7 +13,11 @@ export function SignInButton() {
    return <Button className="w-full" onClick={() => signIn()}>Sign In</Button>
 }
 
-
+/**
+ * A button component that initiates the Google sign-in process.
+ * It retrieves the `callbackUrl` from the search parameters to redirect the user after successful authentication.
+ * If no `callbackUrl` is provided, it defaults to "/dashboard".
+ */
 export function GoogleSignInButton() {
    const searchParams = useSearchParams()
    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"

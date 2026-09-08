@@ -1,7 +1,9 @@
 import { Building, HomeIcon, LayoutDashboard } from "lucide-react"
 import { MainNavItem, SubNavItem, SecondaryNavItem } from "../types/navigation"
 
-
+/**
+ * Navigation menu items for the public-facing part of the application
+ */
 export const PUBLIC_NAVIGATION: MainNavItem[] = [
    {
       title: "Home",
@@ -22,5 +24,8 @@ export const PUBLIC_NAVIGATION: MainNavItem[] = [
 ]
 
 
+/**
+ * Navigation menu items for the admin section of the application
+ */
 export const ADMIN_NAVIGATION: MainNavItem[] = [
 ]
