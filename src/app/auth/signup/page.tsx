@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ErrorMessage from "@/components/error-message";
 
@@ -85,7 +85,9 @@ export default function SignUp() {
             {globalError && <ErrorMessage error={globalError} />}
             <CredentialsSignUpForm form={form} onSubmit={onSubmit} />
             <p className="text-center">or</p>
-            <GoogleSignInButton />
+            <Suspense fallback={<div className="border border-gray-300 p-4 ">Loading...</div>}>
+               <GoogleSignInButton />
+            </Suspense>
          </CardContent>
          <CardFooter className="flex flex-col gap-2">
             <p>

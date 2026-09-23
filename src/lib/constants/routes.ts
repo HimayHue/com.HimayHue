@@ -23,5 +23,6 @@ export const ROUTES = {
       ROOT: "/property-comparison",
       HOMES: "/property-comparison/homes",
       APARTMENTS: "/property-comparison/apartments",
+      ADD: "/property-comparison/add",
    }
 } as const;

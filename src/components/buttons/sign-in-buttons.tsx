@@ -21,6 +21,7 @@ export function SignInButton() {
 export function GoogleSignInButton() {
    const searchParams = useSearchParams()
    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+
    return (
       <Button className="w-full hover:cursor-pointer" onClick={() => signIn("google", { callbackUrl })}>
          <FcGoogle size={20} />

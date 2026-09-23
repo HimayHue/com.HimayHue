@@ -20,6 +20,12 @@ export const PUBLIC_NAVIGATION: MainNavItem[] = [
       title: "Property Comparison",
       url: "/property-comparison",
       icon: Building,
+      items: [
+         {
+            title: "Add Property",
+            url: "/property-comparison/add"
+         }
+      ]
    }
 ]
 
