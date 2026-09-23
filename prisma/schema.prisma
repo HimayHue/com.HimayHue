@@ -56,6 +56,7 @@ model User {
   private       Boolean      @default(false)
   Account       Account[]
   bucketLists   BucketList[]
+  properties    Property[]
 
   followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
   followedByIDs String[] @db.ObjectId
@@ -109,4 +110,53 @@ model BucketList {
   places BucketListPlace[]
 
   @@index([userId])
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  LOT
+  OTHER
+}
+
+model Property {
+  // --- Identifiers & Ownership ---
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId String @db.ObjectId
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // --- Basic Information ---
+  name         String? // Optional name for the property
+  description  String?
+  propertyType PropertyType
+  url          String?
+  coverImage   String?
+
+  // --- Financials ---
+  price       Float?
+  propertyTax Float?
+  hoaFees     Float?
+
+  // --- Physical Specs & Dimensions ---
+  bedrooms      Int?
+  bathrooms     Float?
+  squareFootage Float?
+  lotSize       Float?
+  yearBuilt     Int?
+
+  // --- Location ---
+  address   String?
+  city      String
+  state     String
+  zipCode   String
+  latitude  Float?
+  longitude Float?
+
+  // --- Timestamps ---
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
 }

@@ -1,5 +1,5 @@
 'use server';
-
+// NOTHING IS IMPLEMENTED YET. THIS IS A PLACEHOLDER FOR FUTURE FUNCTIONALITY.
 import { auth } from "@/auth";
 
 export async function addPlaceToBucketList(place: Partial<google.maps.places.Place>): Promise<boolean> {

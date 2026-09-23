@@ -84,7 +84,7 @@ export default function CredentialsSignInForm({
                   </Field>
                )}
             />
-            <Button type="submit" form="credentials-form">
+            <Button className='hover:cursor-pointer' type="submit" form="credentials-form">
                Login
             </Button>
          </FieldGroup>
