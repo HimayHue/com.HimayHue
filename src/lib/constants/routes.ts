@@ -21,8 +21,7 @@ export const ROUTES = {
    DASHBOARD: "/dashboard",
    PROPERTY_COMPARISON: {
       ROOT: "/property-comparison",
-      HOMES: "/property-comparison/homes",
-      APARTMENTS: "/property-comparison/apartments",
+      VIEW: "/property-comparison",
       ADD: "/property-comparison/add",
    }
 } as const;

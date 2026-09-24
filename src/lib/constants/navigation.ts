@@ -1,5 +1,6 @@
 import { Building, HomeIcon, LayoutDashboard } from "lucide-react"
 import { MainNavItem, SubNavItem, SecondaryNavItem } from "../types/navigation"
+import { ROUTES } from "./routes"
 
 /**
  * Navigation menu items for the public-facing part of the application
@@ -7,23 +8,27 @@ import { MainNavItem, SubNavItem, SecondaryNavItem } from "../types/navigation"
 export const PUBLIC_NAVIGATION: MainNavItem[] = [
    {
       title: "Home",
-      url: "/",
+      url: ROUTES.HOME,
       icon: HomeIcon
    },
    {
       title: "Dashboard",
-      url: "/dashboard",
+      url: ROUTES.DASHBOARD,
       icon: LayoutDashboard,
 
    },
    {
       title: "Property Comparison",
-      url: "/property-comparison",
+      url: ROUTES.PROPERTY_COMPARISON.ROOT,
       icon: Building,
       items: [
          {
+            title: "View Property",
+            url: ROUTES.PROPERTY_COMPARISON.VIEW
+         },
+         {
             title: "Add Property",
-            url: "/property-comparison/add"
+            url: ROUTES.PROPERTY_COMPARISON.ADD
          }
       ]
    }

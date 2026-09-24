@@ -100,6 +100,7 @@ export async function createProperty(
    }
 }
 
+
 /**
  * Returns all properties owned by the specified user.
  */
@@ -140,6 +141,41 @@ export async function getPropertiesByUserId(
       return actionFailure(
          "DATABASE_ERROR",
          "We couldn't load your properties. Please try again.",
+      );
+   }
+}
+
+
+/**
+ * Deletes a property by its ID that belongs to the currently authenticated user.
+ */
+export async function deletePropertyById(
+   propertyId: string,
+): Promise<ActionResult<null, PropertyActionError>> {
+   const session = await auth();
+   const userId = session?.user?.id;
+
+   if (!userId) {
+      return actionFailure(
+         "UNAUTHENTICATED",
+         "You must be signed in to delete a property.",
+      );
+   }
+
+   try {
+      await prisma.property.delete({
+         where: { id: propertyId, ownerId: userId },
+      });
+
+      return actionSuccess(
+         null,
+         "Property deleted successfully.",
+      );
+   } catch (error) {
+      console.error("Error deleting property:", error);
+      return actionFailure(
+         "DATABASE_ERROR",
+         "We couldn't delete the property. Please try again.",
       );
    }
 }

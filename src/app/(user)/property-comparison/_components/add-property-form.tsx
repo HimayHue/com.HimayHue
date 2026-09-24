@@ -89,6 +89,9 @@ function FormInputField({
    )
 }
 
+/**
+ * A form for adding a new property.
+ */
 export function AddPropertyForm({
    onSubmitAction,
 }: {

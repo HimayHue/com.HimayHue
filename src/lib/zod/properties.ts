@@ -105,7 +105,9 @@ const propertyFormLocationSchema = z.object({
    ),
 });
 
-// Merged schema for the entire property form
+/**
+ * Represents the complete schema for the property form, combining basic info, financial details, features, and location.
+ */
 export const propertyFormSchema = propertyFormBasicSchema
    .merge(propertyFormFinancialSchema)
    .merge(propertyFormFeaturesSchema)
@@ -113,3 +115,40 @@ export const propertyFormSchema = propertyFormBasicSchema
 
 export type PropertyFormInput = z.input<typeof propertyFormSchema>;
 export type PropertyFormOutput = z.infer<typeof propertyFormSchema>
+
+
+
+
+/**
+ * Represents a property listing fetched from an external API.
+ */
+export const PropertyListingSchema = z.object({
+   listingKey: z.string(),
+   listingId: z.string(), // MLS Number
+   status: z.string(),
+   price: z.number(),
+   address: z.object({
+      full: z.string(),
+      street: z.string(),
+      city: z.string(),
+      state: z.string(),
+      postalCode: z.string(),
+   }),
+   specs: z.object({
+      bedrooms: z.number(),
+      bathrooms: z.number(),
+      approxSqFt: z.number().nullable(),
+      yearBuilt: z.number().nullable(),
+   }),
+   subdivision: z.string().nullable(),
+   coordinates: z.object({
+      latitude: z.number(),
+      longitude: z.number(),
+   }),
+   detailsUrl: z.string().url().nullable(),
+   listAgentId: z.string().optional(),
+   propertyClass: z.string().optional(),
+   propertyType: z.string().optional(),
+});
+
+export type PropertyListing = z.infer<typeof PropertyListingSchema>;

@@ -125,7 +125,7 @@ model Property {
   // --- Identifiers & Ownership ---
   id      String @id @default(auto()) @map("_id") @db.ObjectId
   ownerId String @db.ObjectId
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User?  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // --- Basic Information ---
   name         String? // Optional name for the property

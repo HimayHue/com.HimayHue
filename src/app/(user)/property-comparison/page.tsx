@@ -1,10 +1,26 @@
-import { createProperty } from '@/actions/properties'
-import { AddPropertyForm } from './_components/forms'
+import { getPropertiesByUserId } from '@/actions/properties'
+import { Property } from '@prisma/client'
+import { auth } from '@/auth'
+import { DisplayProperties } from './_components/display-properties'
 
-export default function PropertyComparisonPage() {
+export default async function PropertyComparisonPage() {
+   const session = await auth()
+
+   if (!session) {
+      return (
+         <div>
+            <p>You must be logged in to view this page.</p>
+         </div>
+      )
+   }
+
+   const fetchPropertiesResult = await getPropertiesByUserId(session.user.id)
+   const properties = fetchPropertiesResult.success ? fetchPropertiesResult.data : []
+
    return (
       <div>
-         <AddPropertyForm onSubmitAction={createProperty} />
+         <p>Properties for {session.user.name}:</p>
+         <DisplayProperties properties={properties} />
       </div>
    )
 }
