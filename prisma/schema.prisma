@@ -41,22 +41,22 @@ model Account {
 }
 
 model User {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
   firstname     String?
   lastname      String?
   name          String?
-  username      String?      @unique
-  email         String       @unique
+  username      String?           @unique
+  email         String            @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          String       @default("User")
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  private       Boolean      @default(false)
+  role          String            @default("User")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  private       Boolean           @default(false)
   Account       Account[]
   bucketLists   BucketList[]
-  properties    Property[]
+  properties    PropertyListing[]
 
   followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
   followedByIDs String[] @db.ObjectId
@@ -121,42 +121,69 @@ enum PropertyType {
   OTHER
 }
 
-model Property {
-  // --- Identifiers & Ownership ---
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
-  ownerId String @db.ObjectId
-  owner   User?  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+// --- Embedded Types for MongoDB ---
 
-  // --- Basic Information ---
-  name         String? // Optional name for the property
-  description  String?
-  propertyType PropertyType
-  url          String?
-  coverImage   String?
+type PropertyAddress {
+  full       String
+  street     String
+  city       String
+  state      String
+  postalCode String
+}
 
-  // --- Financials ---
-  price       Float?
-  propertyTax Float?
-  hoaFees     Float?
+type PropertySpecs {
+  bedrooms   Int
+  bathrooms  Float
+  approxSqFt Int
+  yearBuilt  Int
+}
 
-  // --- Physical Specs & Dimensions ---
-  bedrooms      Int?
-  bathrooms     Float?
-  squareFootage Float?
-  lotSize       Float?
-  yearBuilt     Int?
+type PropertyCoordinates {
+  latitude  Float
+  longitude Float
+}
 
-  // --- Location ---
-  address   String?
-  city      String
-  state     String
-  zipCode   String
-  latitude  Float?
-  longitude Float?
+type PriceRecord {
+  price      Float
+  status     String
+  recordedAt DateTime @default(now())
+}
 
-  // --- Timestamps ---
+// --- Updated Property Model ---
+
+model PropertyListing {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId      String        @db.ObjectId
+  owner        User?         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  referenceUrl String? // The URL from which the property listing was scraped
+  PropertyType PropertyType?
+
+  // Listing Identifiers
+  listingKey String @unique
+  listingId  String // MLS Number
+  status     String
+  price      Float
+
+  // Embedded Price History Array
+  priceHistory PriceRecord[]
+
+  // Nested Data Objects
+  address     PropertyAddress
+  specs       PropertySpecs
+  coordinates PropertyCoordinates
+
+  // Additional Listing Attributes
+  subdivision   String?
+  detailsUrl    String?
+  listAgentId   String?
+  propertyClass String?
+  propertyType  String? // Storing the raw code (e.g., "A") directly from the feed
+
+  // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
+  @@index([listingId])
+  @@map("Property")
 }

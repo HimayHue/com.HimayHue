@@ -1,16 +1,13 @@
 "use server"
 import prisma from "@/lib/prisma";
-import type { Property } from "@prisma/client";
+import type { ScrapedPropertyListing } from "@/types/property-listing";
 import {
    actionFailure,
    actionSuccess,
    type ActionResult,
 } from "@/lib/action-result";
-import {
-   propertyFormSchema,
-   type PropertyFormOutput,
-} from "@/lib/zod/properties";
 import { auth } from "@/auth";
+import { PropertyListing } from "@prisma/client";
 
 type PropertyActionError =
    | "UNAUTHENTICATED"
@@ -24,124 +21,56 @@ export type CreatePropertyResult = ActionResult<
 >;
 
 export type GetPropertiesResult = ActionResult<
-   Property[],
+   PropertyListing[],
    PropertyActionError
 >;
 
-/**
- * Creates a new Property object with the given input values.
- */
-export async function createProperty(
-   formData: PropertyFormOutput,
-): Promise<CreatePropertyResult> {
-   // Gets the currents user ID from the server session
-   const session = await auth();
-   const userId = session?.user?.id;
 
-   if (!userId) {
-      return actionFailure(
-         "UNAUTHENTICATED",
-         "You must be signed in to create a property.",
-      );
-   }
-
-   // Validate the form data against the schema
-   const result = propertyFormSchema.safeParse(formData);
-
-   if (!result.success) {
-      return actionFailure(
-         "INVALID_INPUT",
-         "The property details are invalid. Please review the form.",
-      );
-   }
-
-   const property: PropertyFormOutput = result.data;
-
-   try {
-      const createdProperty = await prisma.property.create({
-         data: {
-            ownerId: userId,
-
-            name: property.name,
-            description: property.description,
-            propertyType: property.propertyType,
-            url: property.url,
-            coverImage: property.coverImage,
-
-            price: property.price,
-            propertyTax: property.propertyTax,
-            hoaFees: property.hoaFees,
-
-            bedrooms: property.bedrooms,
-            bathrooms: property.bathrooms,
-            squareFootage: property.squareFootage,
-            lotSize: property.lotSize,
-            yearBuilt: property.yearBuilt,
-
-            address: property.address,
-            city: property.city,
-            state: property.state,
-            zipCode: property.zipCode,
-            latitude: property.latitude,
-            longitude: property.longitude,
-         },
-      });
-
-      return actionSuccess(
-         { propertyId: createdProperty.id },
-         "Property created successfully.",
-      );
-   } catch (error) {
-      console.error("Error creating property:", error);
-      return actionFailure(
-         "DATABASE_ERROR",
-         "We couldn't create the property. Please try again.",
-      );
-   }
-}
 
 
 /**
- * Returns all properties owned by the specified user.
+ * Returns all properties associated with the specified user by oldest first.
  */
 export async function getPropertiesByUserId(
    userId: string,
-): Promise<GetPropertiesResult> {
+) {
    const session = await auth();
    const authenticatedUserId = session?.user?.id;
 
    if (!authenticatedUserId) {
-      return actionFailure(
-         "UNAUTHENTICATED",
-         "You must be signed in to view properties.",
-      );
+      return {
+         success: false,
+         data: [],
+         message: "You must be signed in to view properties.",
+      };
    }
 
    if (!userId || userId !== authenticatedUserId) {
-      return actionFailure(
-         "UNAUTHORIZED",
-         "You are not authorized to view these properties.",
-      );
+      return {
+         success: false,
+         data: [],
+         message: "You are not authorized to view these properties.",
+      };
    }
 
    try {
-      const properties = await prisma.property.findMany({
+      const properties = await prisma.propertyListing.findMany({
          where: { ownerId: userId },
-         orderBy: { createdAt: "desc" },
+         orderBy: { createdAt: "asc" },
       });
 
-      return actionSuccess(
-         properties,
-         properties.length
-            ? "Properties loaded successfully."
-            : "No properties found.",
-      );
+      return {
+         success: true,
+         data: properties,
+         message: "Properties fetched successfully.",
+      }
    } catch (error) {
       console.error("Error fetching properties:", error);
-      return actionFailure(
-         "DATABASE_ERROR",
-         "We couldn't load your properties. Please try again.",
-      );
+      return {
+         success: false,
+         data: [],
+         message: "We couldn't load your properties. Please try again.",
+      }
    }
 }
 
@@ -151,31 +80,197 @@ export async function getPropertiesByUserId(
  */
 export async function deletePropertyById(
    propertyId: string,
-): Promise<ActionResult<null, PropertyActionError>> {
+) {
    const session = await auth();
    const userId = session?.user?.id;
 
    if (!userId) {
-      return actionFailure(
-         "UNAUTHENTICATED",
-         "You must be signed in to delete a property.",
-      );
+      return {
+         success: false,
+         data: null,
+         message: "You must be signed in to delete a property.",
+      };
    }
 
    try {
-      await prisma.property.delete({
+      await prisma.propertyListing.delete({
          where: { id: propertyId, ownerId: userId },
       });
 
-      return actionSuccess(
-         null,
-         "Property deleted successfully.",
-      );
+      return {
+         success: true,
+         data: null,
+         message: "Property deleted successfully.",
+      };
    } catch (error) {
       console.error("Error deleting property:", error);
-      return actionFailure(
-         "DATABASE_ERROR",
-         "We couldn't delete the property. Please try again.",
-      );
+      return {
+         success: false,
+         data: null,
+         message: "We couldn't delete the property. Please try again.",
+      };
    }
+}
+
+
+/**
+ * Creates a new property listing in the database from a scraped URL's listing data.
+ * @param listingData Listing data from the scraped URL
+ * @returns 
+ */
+export async function createPropertyListing(
+   listingData: PropertyListing,
+) {
+   const session = await auth();
+   const userId = session?.user?.id;
+
+   if (!userId) {
+      return {
+         success: false,
+         message: "You must be signed in to create a property listing.",
+      };
+   }
+
+   try {
+      // Implementation for creating a property listing
+      const newListing = await prisma.propertyListing.create({
+         data: {
+            ...listingData,
+            // ownerId: userId,
+         },
+      });
+      return {
+         success: true,
+         data: newListing,
+         message: "Property listing created successfully.",
+      };
+   } catch (error) {
+      console.error("Error creating property listing:", error);
+      return {
+         success: false,
+         data: null,
+         message: "We couldn't create the property listing. Please try again.",
+      }
+   }
+}
+
+
+/**
+ * Checks if a property listing already exists in the database based on its unique listing key.
+ * If the property listing exists, it updates the latest price and status if they have changed.
+ * If the property listing does not exist, it creates a new entry in the database.
+ * @param listings Listing data from the scraped URL
+ */
+export async function createManyPropertyListings(
+   listings: ScrapedPropertyListing[],
+) {
+   const session = await auth();
+   const userId = session?.user?.id;
+
+   if (!userId) {
+      return {
+         success: false,
+         message: "You must be signed in to create property listings.",
+      };
+   }
+
+   try {
+      const results = await Promise.all(
+         listings.map(async (listing) => {
+
+            const listingData = {
+               listingKey: listing.listingKey,
+               listingId: listing.listingId,
+               status: listing.status,
+               price: listing.price,
+               address: listing.address,
+               specs: {
+                  bedrooms: listing.specs.bedrooms,
+                  bathrooms: listing.specs.bathrooms,
+                  approxSqFt: listing.specs.approxSqFt ?? 0,
+                  yearBuilt: listing.specs.yearBuilt ?? 0,
+               },
+               coordinates: listing.coordinates,
+               subdivision: listing.subdivision,
+               detailsUrl: listing.detailsUrl,
+               listAgentId: listing.listAgentId,
+               propertyClass: listing.propertyClass,
+               propertyType: listing.propertyType,
+            };
+
+            const existingListing = await prisma.propertyListing.findUnique({
+               where: { listingKey: listing.listingKey },
+               select: { priceHistory: true },
+            });
+
+            if (!existingListing) {
+               return prisma.propertyListing.create({
+                  data: {
+                     ...listingData,
+                     ownerId: userId,
+                     priceHistory: [{
+                        price: listing.price,
+                        status: listing.status,
+                     }],
+                  },
+               });
+            }
+
+            const latestPriceRecord =
+               existingListing.priceHistory[existingListing.priceHistory.length - 1];
+            const now = new Date();
+            const hasHistoryForToday =
+               latestPriceRecord !== undefined &&
+               latestPriceRecord.recordedAt.getUTCFullYear() === now.getUTCFullYear() &&
+               latestPriceRecord.recordedAt.getUTCMonth() === now.getUTCMonth() &&
+               latestPriceRecord.recordedAt.getUTCDate() === now.getUTCDate();
+
+            return prisma.propertyListing.update({
+               where: { listingKey: listing.listingKey },
+               data: {
+                  ...listingData,
+                  ...(!hasHistoryForToday && {
+                     priceHistory: {
+                        push: {
+                           price: listing.price,
+                           status: listing.status,
+                        },
+                     },
+                  }),
+               },
+            });
+         }),
+      );
+
+      return {
+         success: true,
+         data: { savedCount: results.length },
+         message: "Property listings saved successfully.",
+      };
+   } catch (error) {
+      console.error("Error creating property listings:", error);
+      return {
+         success: false,
+         data: null,
+         message: "We couldn't create the property listings. Please try again.",
+      }
+   }
+}
+
+
+/**
+ * 
+ */
+export async function updatePropertyPrice() {
+
+}
+
+/**
+ * 
+ * @param batch 
+ */
+export async function syncScrapedPropertyListings(
+   batch: ScrapedPropertyListing[],
+) {
+
 }

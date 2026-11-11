@@ -2,17 +2,24 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { PropertyListing } from "@/lib/zod/properties"
+import { createManyPropertyListings } from "@/actions/properties"
 import { Search } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import type { ScrapedPropertyListing } from "@/types/property-listing"
 
-export function SearchPropertyListings({
-   onSearchClick,
+
+/**
+ * A component that fetches and displays properties listings associated with the users assigned URL. 
+ * It fetches the listings by scraping and parsing them from the provided URL, and then saves them to the database if they do not already exist.
+ * If the properly listings already exist in the database, it will update the latest price.
+ */
+export function ScrapedPropertyListings({
+   onSearchClickAction,
 }: {
-   onSearchClick: (url: string) => Promise<PropertyListing[]>
+   onSearchClickAction: (url: string) => Promise<ScrapedPropertyListing[]>
 }) {
-   const [propertyListings, setPropertyListings] = useState<PropertyListing[]>([])
+   const [propertyListings, setPropertyListings] = useState<ScrapedPropertyListing[]>([])
 
    return (
       <div>
@@ -21,7 +28,6 @@ export function SearchPropertyListings({
                event.preventDefault()
                const value = new FormData(event.currentTarget).get('url')
                const url = typeof value === 'string' ? value.trim() : ''
-               toast("Fetching property listings...")
 
                // 1. Validate the URL format
                try {
@@ -35,16 +41,36 @@ export function SearchPropertyListings({
                }
 
                // 2. Fetch property listings using the provided onSearchClick function
+               let parsedPropertyListings: ScrapedPropertyListing[]
                try {
-                  const results = await onSearchClick(url)
-                  setPropertyListings(results)
-               } catch {
-                  toast.error('Unable to fetch property listings.')
+                  toast("Fetching property listings...")
+                  parsedPropertyListings = await onSearchClickAction(url)
+                  setPropertyListings(parsedPropertyListings)
+                  toast.success(`${parsedPropertyListings.length} property listings fetched`)
                }
+               catch {
+                  toast.error('Unable to fetch property listings.')
+                  return
+               }
+
+               // 3. Update the property listings in the database
+               try {
+                  toast("Saving property listings...")
+                  const saveResult = await createManyPropertyListings(parsedPropertyListings)
+                  if (!saveResult.success) {
+                     toast.error(saveResult.message)
+                     return
+                  }
+                  toast.success("Property listings saved.")
+               }
+               catch {
+                  toast.error('Unable to save property listings.')
+               }
+
             }}
             className="flex gap-2"
          >
-            <Input name="url" type="url" placeholder="Enter URL" required />
+            <Input name="url" type="url" placeholder="Enter URL" required defaultValue={"https://my.flexmls.com/JustinBui/search/contacts/20260904034505780984000000/newsfeeds/listings"} />
             <Button type="submit" size="icon" aria-label="Search">
                <Search />
             </Button>
@@ -54,12 +80,7 @@ export function SearchPropertyListings({
             {propertyListings.map((listing) => (
                <div key={listing.listingKey} className="rounded-md border p-4">
                   <h3 className="font-semibold">${listing.price.toLocaleString()}</h3>
-                  <p>{listing.address.full}</p>
-                  <p>
-                     {listing.specs.bedrooms} bd · {listing.specs.bathrooms} ba
-                     {listing.specs.approxSqFt === null ? "" : ` · ${listing.specs.approxSqFt.toLocaleString()} sqft`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">MLS #{listing.listingId}</p>
+                  <pre className="text-sm text-muted-foreground">{JSON.stringify(listing, null, 2)}</pre>
                </div>
             ))}
          </div>

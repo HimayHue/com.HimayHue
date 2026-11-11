@@ -19,9 +19,11 @@ export const ROUTES = {
       FORGOT_PASSWORD: "/auth/forgot-password"
    },
    DASHBOARD: "/dashboard",
-   PROPERTY_COMPARISON: {
-      ROOT: "/property-comparison",
-      VIEW: "/property-comparison",
-      ADD: "/property-comparison/add",
+   PROPERTIES: {
+      ROOT: "/properties",
+      DASHBOARD: "/properties",
+      COMPARE: "/properties/compare",
+      ADD: "/properties/add",
+      DISCOVER: "/properties/discover",
    }
 } as const;

@@ -1,5 +1,24 @@
 import * as cheerio from "cheerio";
-import { PropertyListing, PropertyListingSchema } from "@/lib/zod/properties";
+import type { ScrapedPropertyListing } from "@/types/property-listing";
+
+
+const PROPERTY_TYPE_MAP: Record<string, ScrapedPropertyListing["propertyType"]> = {
+   A: "HOUSE",
+};
+
+
+/**
+ * Maps a raw property type string to a normalized `ScrapedPropertyListing["propertyType"]` value.
+ * If the input value is not recognized, it defaults to "OTHER".
+ *
+ * @param value - The raw property type string to normalize.
+ * @returns The normalized property type.
+ */
+function normalizePropertyType(value?: string): ScrapedPropertyListing["propertyType"] {
+   if (!value) return "OTHER";
+   return PROPERTY_TYPE_MAP[value] ?? "OTHER";
+}
+
 
 interface RawEmbeddedListing {
    ListingKey: string;
@@ -25,22 +44,24 @@ interface RawEmbeddedListing {
    [key: string]: unknown;
 }
 
-export function parseListingsFromHtml(html: string): PropertyListing[] {
+
+export function parseListingsFromHtml(html: string): ScrapedPropertyListing[] {
    if (!html || !html.trim()) return [];
 
-   // CRITICAL FIX: Standalone <tr> tags are stripped by HTML parsers unless enclosed in a table
-   const sanitizedHtml = html.includes("<table")
-      ? html
-      : `<table><tbody>${html}</tbody></table>`;
+   // Protect <tr> tags from being discarded if table HTML is passed in
+   const sanitizedHtml = html.includes("<tr") && !html.includes("<table")
+      ? `<table><tbody>${html}</tbody></table>`
+      : html;
 
    const $ = cheerio.load(sanitizedHtml);
-   const listings: PropertyListing[] = [];
+   const listings: ScrapedPropertyListing[] = [];
 
-   $("tr.listingListItem").each((_, element) => {
-      const row = $(element);
+   // Target both summary cards (<div>) and table rows (<tr>)
+   $(".listingListItem").each((_, element) => {
+      const item = $(element);
 
-      // 1. Extract the embedded JSON payload from the Save button
-      const saveLink = row.find("a.consumerSaveListingLink");
+      // 1. Extract embedded JSON payload
+      const saveLink = item.find("a.consumerSaveListingLink, a.unhideListingLink");
       const rawJson = saveLink.attr("data-listing");
 
       let embeddedData: RawEmbeddedListing | null = null;
@@ -48,85 +69,110 @@ export function parseListingsFromHtml(html: string): PropertyListing[] {
          try {
             embeddedData = JSON.parse(rawJson);
          } catch {
-            console.warn(`Failed to parse data-listing JSON for row ${row.attr("id")}`);
+            console.warn(`Failed to parse data-listing JSON for listing ${item.attr("id")}`);
          }
       }
 
-      // 2. Extract MLS number & Status
+      // 2. Identification & Status
       const mlsNumber =
          embeddedData?.ListingId ||
-         row.find("td.listing-number span").text().trim() ||
-         row.find("td.listing-number").text().trim() ||
+         item.find(".mls-nbr").text().replace("#", "").trim() ||
+         item.find("td.listing-number").text().trim() ||
          "";
 
       const status =
          embeddedData?.MlsStatus ||
-         row.attr("data-standard-status") ||
-         row.find("td.listing-status").text().trim() ||
-         "Unknown";
+         item.attr("data-standard-status") ||
+         item.find(".summary-status").text().trim() ||
+         item.find("td.listing-status").text().trim() ||
+         "Active";
 
       // 3. Price
       const priceRaw =
          embeddedData?.CurrentPrice ??
-         parseFloat(row.attr("data-current-price") || "0");
+         parseFloat(item.attr("data-current-price") || "0");
 
-      // 4. Address
-      const domAddressText = row.find(".listing-address").text().trim();
-      const addressParts = domAddressText.split(",").map((s) => s.trim());
+      // 4. Address Components
+      const street =
+         embeddedData?.StreetAddress ||
+         item.find(".address-wrapper .line-one").text().trim() ||
+         "";
+
+      const cityStateZip = item.find(".address-wrapper .line-two").text().trim();
+      let city = embeddedData?.City || "";
+      let state = embeddedData?.StateOrProvince || "";
+      let postalCode = embeddedData?.PostalCode || "";
+
+      if (!city && cityStateZip) {
+         const parts = cityStateZip.split(",");
+         city = parts[0]?.trim() || "";
+         if (parts[1]) {
+            const stateZipParts = parts[1].trim().split(" ");
+            state = stateZipParts[0]?.trim() || "";
+            postalCode = stateZipParts[1]?.trim() || "";
+         }
+      }
 
       const fullAddress =
-         embeddedData?.StreetAddress && embeddedData?.City && embeddedData?.StateOrProvince
-            ? `${embeddedData.StreetAddress}, ${embeddedData.City}, ${embeddedData.StateOrProvince}`
-            : domAddressText;
+         street && city && state
+            ? `${street}, ${city}, ${state} ${postalCode}`.trim()
+            : item.find(".listing-address").text().trim() || street;
 
-      const street = embeddedData?.StreetAddress || addressParts[0] || "";
-      const city = embeddedData?.City || addressParts[1] || "";
-      const state = embeddedData?.StateOrProvince || addressParts[2] || "";
-      const postalCode = embeddedData?.PostalCode || "";
+      // 5. Specs & Dimensions (Extracting from .data-row key-values or table cells)
+      const specsMap: Record<string, string> = {};
+      item.find(".data-row").each((_, rowEl) => {
+         const title = $(rowEl).find(".title").text().trim().toLowerCase();
+         const val = $(rowEl).find(".value").text().trim();
+         if (title && val) specsMap[title] = val;
+      });
 
-      // 5. Subdivision & Year
       const subdivision =
-         row.find('td[class=""]').first().text().trim() ||
-         row.find("td:nth-child(7)").text().trim() ||
+         specsMap["subdivision"] ||
+         item.find('td[class=""]').first().text().trim() ||
          null;
 
-      const yearBuiltRaw = parseInt(row.find("td.align-right").eq(0).text().trim(), 10);
+      const yearBuiltRaw = parseInt(
+         specsMap["year built"] || item.find("td.align-right").eq(0).text().trim(),
+         10
+      );
       const yearBuilt = !isNaN(yearBuiltRaw) ? yearBuiltRaw : null;
 
-      // 6. Beds & Baths
       const bedsRaw =
          embeddedData?.BedsTotal ??
-         parseInt(row.find("td.align-right").eq(1).text().trim(), 10);
+         parseInt(specsMap["bedrooms"] || item.find("td.align-right").eq(1).text().trim(), 10);
       const bedrooms = typeof bedsRaw === "string" ? parseInt(bedsRaw, 10) : Number(bedsRaw) || 0;
 
       const bathsRaw =
          embeddedData?.BathsTotal ??
-         parseFloat(row.find("td.align-right").eq(2).text().trim());
+         parseFloat(specsMap["bathrooms"] || item.find("td.align-right").eq(2).text().trim());
       const bathrooms = typeof bathsRaw === "string" ? parseFloat(bathsRaw) : Number(bathsRaw) || 0;
 
-      // 7. SqFt
-      const sqftText = row.find("td.align-right").eq(3).text().trim().replace(/,/g, "");
+      const sqftText = (
+         specsMap["approx sqft"] || item.find("td.align-right").eq(3).text().trim()
+      ).replace(/,/g, "");
       const sqftRaw = parseInt(sqftText, 10);
       const approxSqFt = !isNaN(sqftRaw) ? sqftRaw : null;
 
-      // 8. Coordinates
+      // 6. Coordinates
       const latitude =
          embeddedData?.Latitude ??
-         parseFloat(row.attr("data-latitude") || "0");
+         parseFloat(item.attr("data-latitude") || "0");
 
       const longitude =
          embeddedData?.Longitude ??
-         parseFloat(row.attr("data-longitude") || "0");
+         parseFloat(item.attr("data-longitude") || "0");
 
-      // 9. Details URL (format relative paths to full URLs if needed)
-      let detailsUrl = row.attr("data-href") || null;
+      // 7. URLs & Media
+      let detailsUrl = item.attr("data-href") || null;
       if (detailsUrl && detailsUrl.startsWith("/")) {
          detailsUrl = `https://my.flexmls.com${detailsUrl}`;
       }
 
-      // 10. Assemble and validate
+      const imageUrl = item.find(".thumbnail img").attr("src") || null;
+
+      // 8. Assemble the scraped listing
       const rawListing = {
-         listingKey: embeddedData?.ListingKey || row.attr("id") || "",
+         listingKey: embeddedData?.ListingKey || item.attr("id") || "",
          listingId: String(mlsNumber),
          status: status,
          price: Number(priceRaw),
@@ -149,22 +195,15 @@ export function parseListingsFromHtml(html: string): PropertyListing[] {
             longitude: Number(longitude),
          },
          detailsUrl: detailsUrl,
+         imageUrl: imageUrl,
          listAgentId: embeddedData?.ListAgentId,
          propertyClass: embeddedData?.StandardFields?.PropertyClass,
-         propertyType: embeddedData?.StandardFields?.PropertyType,
+         propertyType: normalizePropertyType(embeddedData?.StandardFields?.PropertyType),
       };
 
-      const parsed = PropertyListingSchema.safeParse(rawListing);
-      if (parsed.success) {
-         listings.push(parsed.data);
-      } else {
-         console.error(
-            `Schema validation failed for listing ${mlsNumber}:`,
-            JSON.stringify(parsed.error.format(), null, 2)
-         );
-      }
+      console.assert(embeddedData?.ListingKey, `Missing ListingKey for listing ${mlsNumber}`);
+      listings.push(rawListing);
    });
 
-   console.log(`Parsed ${listings.length} property listings from HTML.`);
    return listings;
 }

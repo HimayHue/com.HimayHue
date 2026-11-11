@@ -19,16 +19,16 @@ export const PUBLIC_NAVIGATION: MainNavItem[] = [
    },
    {
       title: "Property Comparison",
-      url: ROUTES.PROPERTY_COMPARISON.ROOT,
+      url: ROUTES.PROPERTIES.ROOT,
       icon: Building,
       items: [
          {
-            title: "View Property",
-            url: ROUTES.PROPERTY_COMPARISON.VIEW
+            title: "View Properties",
+            url: ROUTES.PROPERTIES.DASHBOARD
          },
          {
-            title: "Add Property",
-            url: ROUTES.PROPERTY_COMPARISON.ADD
+            title: "Discover Properties",
+            url: ROUTES.PROPERTIES.DISCOVER
          }
       ]
    }
