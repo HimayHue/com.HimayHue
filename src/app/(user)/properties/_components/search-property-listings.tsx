@@ -6,7 +6,7 @@ import { createManyPropertyListings } from "@/actions/properties"
 import { Search } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { ScrapedPropertyListing } from "@/types/property-listing"
+import type { ParsedPropertyListing } from "@/types/property-listing"
 
 
 /**
@@ -17,9 +17,9 @@ import type { ScrapedPropertyListing } from "@/types/property-listing"
 export function ScrapedPropertyListings({
    onSearchClickAction,
 }: {
-   onSearchClickAction: (url: string) => Promise<ScrapedPropertyListing[]>
+   onSearchClickAction: (url: string) => Promise<ParsedPropertyListing[]>
 }) {
-   const [propertyListings, setPropertyListings] = useState<ScrapedPropertyListing[]>([])
+   const [propertyListings, setPropertyListings] = useState<ParsedPropertyListing[]>([])
 
    return (
       <div>
@@ -41,7 +41,7 @@ export function ScrapedPropertyListings({
                }
 
                // 2. Fetch property listings using the provided onSearchClick function
-               let parsedPropertyListings: ScrapedPropertyListing[]
+               let parsedPropertyListings: ParsedPropertyListing[]
                try {
                   toast("Fetching property listings...")
                   parsedPropertyListings = await onSearchClickAction(url)

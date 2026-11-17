@@ -1,7 +1,7 @@
 "use server";
 
 import { parseListingsFromHtml } from "@/lib/utils/web-scraping/parse-property-listings";
-import type { ScrapedPropertyListing } from "@/types/property-listing";
+import type { ParsedPropertyListing } from "@/types/property-listing";
 
 const FLEXMLS_HEADERS: HeadersInit = {
    "accept": "text/html, */*; q=0.01",
@@ -20,8 +20,8 @@ const FLEXMLS_HEADERS: HeadersInit = {
 
 export async function scrapeListingsAction(
    inputUrl: string,
-): Promise<ScrapedPropertyListing[]> {
-   const allListings: ScrapedPropertyListing[] = [];
+): Promise<ParsedPropertyListing[]> {
+   const allListings: ParsedPropertyListing[] = [];
    const cleanBaseUrl = inputUrl.split("?")[0].replace(/\/$/, "");
 
    let page = 1;

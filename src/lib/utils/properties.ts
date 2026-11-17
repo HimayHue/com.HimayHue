@@ -20,6 +20,6 @@ export function normalizePropertyType(type: PropertyListing["propertyType"]): Pr
  * This mapping is used to convert raw property type codes (e.g., "A") from the scraped data into
  * the corresponding normalized property type values (e.g., "HOUSE").
  */
-export const PROPERTY_TYPE_MAP: Record<string, ScrapedPropertyListing["propertyType"]> = {
-   A: "HOUSE",
+export const PROPERTY_TYPE_MAP: Record<string, PropertyType> = {
+   A: PropertyType.HOUSE,
 };

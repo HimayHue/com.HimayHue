@@ -1,6 +1,6 @@
 "use server"
 import prisma from "@/lib/prisma";
-import type { ScrapedPropertyListing } from "@/types/property-listing";
+import type { ParsedPropertyListing } from "@/types/property-listing";
 import {
    actionFailure,
    actionSuccess,
@@ -162,7 +162,7 @@ export async function createPropertyListing(
  * @param listings Listing data from the scraped URL
  */
 export async function createManyPropertyListings(
-   listings: ScrapedPropertyListing[],
+   listings: ParsedPropertyListing[],
 ) {
    const session = await auth();
    const userId = session?.user?.id;
@@ -269,7 +269,7 @@ export async function updatePropertyPrice() {
  * @param batch 
  */
 export async function syncScrapedPropertyListings(
-   batch: ScrapedPropertyListing[],
+   batch: ParsedPropertyListing[],
 ) {
 
 }

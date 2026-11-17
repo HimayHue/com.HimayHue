@@ -1,5 +1,9 @@
 import * as cheerio from "cheerio";
-import type { ScrapedPropertyListing } from "@/types/property-listing";
+import { PropertyType } from "@prisma/client";
+import type {
+   ParsedPropertyListing,
+   ScrapedPropertyListing,
+} from "@/types/property-listing";
 import { PROPERTY_TYPE_MAP } from "../properties";
 
 
@@ -7,15 +11,15 @@ import { PROPERTY_TYPE_MAP } from "../properties";
 
 
 /**
- * Maps a raw property type string to a normalized `ScrapedPropertyListing["propertyType"]` value.
+ * Maps a raw scraped property type string to the normalized Prisma enum value.
  * If the input value is not recognized, it defaults to "OTHER".
  *
  * @param value - The raw property type string to normalize.
  * @returns The normalized property type.
  */
-function normalizeScrapedPropertyType(value?: string): ScrapedPropertyListing["propertyType"] {
-   if (!value) return "OTHER";
-   return PROPERTY_TYPE_MAP[value] ?? "OTHER";
+function normalizeScrapedPropertyType(value?: string): PropertyType {
+   if (!value) return PropertyType.OTHER;
+   return PROPERTY_TYPE_MAP[value] ?? PropertyType.OTHER;
 }
 
 
@@ -43,7 +47,7 @@ interface RawEmbeddedListing {
 }
 
 
-export function parseListingsFromHtml(html: string): ScrapedPropertyListing[] {
+export function parseListingsFromHtml(html: string): ParsedPropertyListing[] {
    if (!html || !html.trim()) return [];
 
    // Protect <tr> tags from being discarded if table HTML is passed in
@@ -52,7 +56,7 @@ export function parseListingsFromHtml(html: string): ScrapedPropertyListing[] {
       : html;
 
    const $ = cheerio.load(sanitizedHtml);
-   const listings: ScrapedPropertyListing[] = [];
+   const listings: ParsedPropertyListing[] = [];
 
    // Target both summary cards (<div>) and table rows (<tr>)
    $(".listingListItem").each((_, element) => {
@@ -195,11 +199,14 @@ export function parseListingsFromHtml(html: string): ScrapedPropertyListing[] {
          detailsUrl: detailsUrl,
          imageUrl: imageUrl,
          listAgentId: embeddedData?.ListAgentId,
-         propertyType: normalizeScrapedPropertyType(embeddedData?.StandardFields?.PropertyType),
+         propertyType: embeddedData?.StandardFields?.PropertyType,
       };
 
       console.assert(embeddedData?.ListingKey, `Missing ListingKey for listing ${mlsNumber}`);
-      listings.push(rawListing);
+      listings.push({
+         ...rawListing,
+         propertyType: normalizeScrapedPropertyType(rawListing.propertyType),
+      });
    });
 
    return listings;
