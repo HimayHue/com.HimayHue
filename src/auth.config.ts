@@ -32,7 +32,7 @@ const config = {
             // validate credentials
             const parsedCredentials = emailSignInSchema.safeParse(credentials);
             if (!parsedCredentials.success) {
-               console.error("Invalid credentials:", parsedCredentials.error.errors);
+               console.error("Invalid credentials:", parsedCredentials.error);
                return null;
             }
             // get user
