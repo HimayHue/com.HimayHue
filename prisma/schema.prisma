@@ -156,7 +156,7 @@ model PropertyListing {
   ownerId      String        @db.ObjectId
   owner        User?         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   referenceUrl String? // The URL from which the property listing was scraped
-  PropertyType PropertyType?
+  propertyType PropertyType?
 
   // Listing Identifiers
   listingKey String @unique
@@ -173,11 +173,9 @@ model PropertyListing {
   coordinates PropertyCoordinates
 
   // Additional Listing Attributes
-  subdivision   String?
-  detailsUrl    String?
-  listAgentId   String?
-  propertyClass String?
-  propertyType  String? // Storing the raw code (e.g., "A") directly from the feed
+  subdivision String?
+  detailsUrl  String?
+  listAgentId String?
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -185,5 +183,4 @@ model PropertyListing {
 
   @@index([ownerId])
   @@index([listingId])
-  @@map("Property")
 }

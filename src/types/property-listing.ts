@@ -24,6 +24,5 @@ export interface ScrapedPropertyListing {
    detailsUrl: string | null;
    imageUrl?: string | null;
    listAgentId?: string;
-   propertyClass?: string;
    propertyType?: string;
 }

@@ -12,7 +12,7 @@ import {
 
 
 /**
- * Mapping of property types to their corresponding Lucide icons.
+ * Mapping of PropertyListings["propertyType"] to their corresponding Lucide icons.
  */
 export const PROPERTY_TYPE_ICONS: Record<PropertyType, LucideIcon> = {
    HOUSE: Home,

@@ -194,7 +194,6 @@ export async function createManyPropertyListings(
                subdivision: listing.subdivision,
                detailsUrl: listing.detailsUrl,
                listAgentId: listing.listAgentId,
-               propertyClass: listing.propertyClass,
                propertyType: listing.propertyType,
             };
 

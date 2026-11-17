@@ -1,10 +1,9 @@
 import * as cheerio from "cheerio";
 import type { ScrapedPropertyListing } from "@/types/property-listing";
+import { PROPERTY_TYPE_MAP } from "../properties";
 
 
-const PROPERTY_TYPE_MAP: Record<string, ScrapedPropertyListing["propertyType"]> = {
-   A: "HOUSE",
-};
+
 
 
 /**
@@ -14,7 +13,7 @@ const PROPERTY_TYPE_MAP: Record<string, ScrapedPropertyListing["propertyType"]> 
  * @param value - The raw property type string to normalize.
  * @returns The normalized property type.
  */
-function normalizePropertyType(value?: string): ScrapedPropertyListing["propertyType"] {
+function normalizeScrapedPropertyType(value?: string): ScrapedPropertyListing["propertyType"] {
    if (!value) return "OTHER";
    return PROPERTY_TYPE_MAP[value] ?? "OTHER";
 }
@@ -37,7 +36,6 @@ interface RawEmbeddedListing {
    Longitude?: number;
    ListAgentId?: string;
    StandardFields?: {
-      PropertyClass?: string;
       PropertyType?: string;
       [key: string]: unknown;
    };
@@ -197,8 +195,7 @@ export function parseListingsFromHtml(html: string): ScrapedPropertyListing[] {
          detailsUrl: detailsUrl,
          imageUrl: imageUrl,
          listAgentId: embeddedData?.ListAgentId,
-         propertyClass: embeddedData?.StandardFields?.PropertyClass,
-         propertyType: normalizePropertyType(embeddedData?.StandardFields?.PropertyType),
+         propertyType: normalizeScrapedPropertyType(embeddedData?.StandardFields?.PropertyType),
       };
 
       console.assert(embeddedData?.ListingKey, `Missing ListingKey for listing ${mlsNumber}`);

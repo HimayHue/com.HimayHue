@@ -1,27 +1,21 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { PropertyListing, PropertyType } from "@prisma/client";
-import { Bath, Bed, Calendar, CalendarDays, ChevronDown, ChevronUp, DollarSign, Ruler } from "lucide-react";
+import { PropertyListing } from "@prisma/client";
+import { Bath, Bed, CalendarDays, ChevronDown, ChevronUp, DollarSign, Ruler } from "lucide-react";
 import { PROPERTY_TYPE_ICONS } from "@/lib/constants/property-icons";
 import { getPropertyStatusVariant } from "@/lib/constants/property-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { normalizePropertyType } from "@/lib/utils/properties";
 
-interface PropertyTypeBadgeProps {
+
+/**
+ * Displays a badge representing the property type with an associated icon.
+ */
+function PropertyTypeBadge({ type, className }: {
    type: PropertyListing["propertyType"];
    className?: string;
-}
-
-function normalizePropertyType(type: PropertyListing["propertyType"]): PropertyType {
-   if (type && Object.values(PropertyType).includes(type as PropertyType)) {
-      return type as PropertyType;
-   }
-
-   return PropertyType.OTHER;
-}
-
-
-function PropertyTypeBadge({ type, className }: PropertyTypeBadgeProps) {
+}) {
    const Icon = PROPERTY_TYPE_ICONS[normalizePropertyType(type)];
 
 
@@ -31,6 +25,9 @@ function PropertyTypeBadge({ type, className }: PropertyTypeBadgeProps) {
 }
 
 
+/**
+ * Displays the header section of the property card, including the property type badge, address, listing ID, and status badge.
+ */
 function PropertyCardHeader({
    address,
    propertyType,
@@ -69,6 +66,7 @@ function PropertyCardHeader({
       </CardHeader>
    );
 }
+
 
 /**
  * Displays the price information for a property.
@@ -135,7 +133,7 @@ function PropertyCardPrice({
  * @param icon The icon to display for the statistic.
  * @param label The label for the statistic.
  * @param value The value for the statistic.
- * @returns A React component displaying the statistic.
+ * @returns Displays a specific specification of the property, such as year built, price per square foot, square footage, bedrooms, or bathrooms.
  */
 function PropertyCardStatItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
    return (
@@ -153,7 +151,6 @@ function PropertyCardStatItem({ icon, label, value }: { icon: React.ReactNode; l
 /**
  * The grid layout for displaying property statistics such as year built, price per square foot, square footage, bedrooms, and bathrooms.
  * @param property The property listing object containing the statistics to display.
- * @returns A React component displaying the property statistics in a grid layout.
  */
 function PropertyCardStats({
    property,
@@ -175,7 +172,6 @@ function PropertyCardStats({
 /**
  * Displays the minimum and maximum prices for a property based on its price history.
  * @param priceHistory The price history of the property.
- * @returns A React component displaying the min and max prices.
  */
 function PropertyCardPriceMinMax({ priceHistory }: { priceHistory: PropertyListing["priceHistory"] }) {
    if (priceHistory.length === 0) return null;
@@ -190,11 +186,11 @@ function PropertyCardPriceMinMax({ priceHistory }: { priceHistory: PropertyListi
    );
 }
 
+
 /**
  * The footer for the property card, which contains a link to view more details about the property directly on the listing page.
  * @param detailsUrl The URL to the property details page.
  * @param className The class name for the footer.
- * @returns A React component displaying the property card footer.
  */
 function PropertyCardFooter({ detailsUrl, className }: { detailsUrl?: string | null; className?: string }) {
    if (!detailsUrl) return null;
