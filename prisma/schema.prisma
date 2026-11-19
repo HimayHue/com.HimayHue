@@ -181,6 +181,6 @@ model PropertyListing {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([ownerId])
+  @@index([ownerId, createdAt, price])
   @@index([listingId])
 }

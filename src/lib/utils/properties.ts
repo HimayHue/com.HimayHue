@@ -23,3 +23,15 @@ export function normalizePropertyType(type: PropertyListing["propertyType"]): Pr
 export const PROPERTY_TYPE_MAP: Record<string, PropertyType> = {
    A: PropertyType.HOUSE,
 };
+
+
+/**
+ * Calculates an overview of the properties, including total properties, average home value, and average year built.
+ */
+export function calculatePropertiesOverview(properties: PropertyListing[]) {
+   return {
+      totalProperties: properties.length,
+      averageHomeValue: properties.reduce((acc, property) => acc + (property.priceHistory[property.priceHistory.length - 1].price ?? 0), 0) / properties.length || 0,
+      averageYearBuilt: properties.reduce((acc, property) => acc + (property.specs.yearBuilt ?? 0), 0) / properties.length || 0,
+   }
+}

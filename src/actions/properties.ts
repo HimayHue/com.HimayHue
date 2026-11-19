@@ -31,8 +31,11 @@ export type GetPropertiesResult = ActionResult<
 /**
  * Returns all properties associated with the specified user by oldest first.
  */
-export async function getPropertiesByUserId(
+export async function getAllPropertiesByUserId(
    userId: string,
+   sort: "asc" | "desc" = "asc",
+   take = 20,
+   skip = 0,
 ) {
    const session = await auth();
    const authenticatedUserId = session?.user?.id;
@@ -53,10 +56,20 @@ export async function getPropertiesByUserId(
       };
    }
 
+   if (sort !== "asc" && sort !== "desc") {
+      return {
+         success: false,
+         data: [],
+         message: "Invalid sort direction.",
+      };
+   }
+
    try {
       const properties = await prisma.propertyListing.findMany({
          where: { ownerId: userId },
-         orderBy: { createdAt: "asc" },
+         orderBy: { createdAt: sort },
+         take,
+         skip,
       });
 
       return {
